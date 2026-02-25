@@ -2,9 +2,27 @@
 {% block title %}Checkout - ShadowHub{% endblock %}
 {% block content %}
 <div class="container py-5">
-  <h2 class="text-light mb-4"><i class="fas fa-lock me-2 text-accent"></i>Secure Checkout</h2>
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <h2 class="text-light mb-0"><i class="fas fa-lock me-2 text-accent"></i>Secure Checkout</h2>
+    {% if use_escrow %}
+    <span class="badge checkout-escrow-badge">
+      <i class="fas fa-shield-alt me-1"></i>Escrow Protection Active
+    </span>
+    {% endif %}
+  </div>
+
+  {% if use_escrow %}
+  <div class="alert checkout-escrow-info mb-4">
+    <i class="fas fa-shield-alt me-2 text-accent"></i>
+    <strong class="text-light">Escrow is enabled.</strong>
+    After placing your order you will be taken to the secure escrow payment panel.
+    Your funds will be held safely until you confirm receipt.
+    <a href="{{ url_for('escrow_choice') }}" class="text-muted ms-2 small">Change preference</a>
+  </div>
+  {% endif %}
 
   <form method="post" action="{{ url_for('checkout') }}">
+    <input type="hidden" name="use_escrow" value="{{ 'yes' if use_escrow else 'no' }}">
     <div class="row g-4">
       <!-- Customer Info -->
       <div class="col-lg-7">
@@ -139,12 +157,21 @@
               <span class="text-light fw-bold fs-5">Total</span>
               <span class="text-accent fw-bold fs-4">{{ format_price(total) }}</span>
             </div>
+            {% if use_escrow %}
+            <button type="submit" class="btn btn-accent w-100 btn-lg">
+              <i class="fas fa-shield-alt me-2"></i>Place Order &amp; Go to Escrow Panel
+            </button>
+            <div class="text-center mt-3">
+              <small class="text-muted"><i class="fas fa-lock me-1"></i>Funds held securely until you confirm receipt.</small>
+            </div>
+            {% else %}
             <button type="submit" class="btn btn-accent w-100 btn-lg">
               <i class="fas fa-lock me-2"></i>Place Order
             </button>
             <div class="text-center mt-3">
               <small class="text-muted">You will receive payment instructions after placing your order.</small>
             </div>
+            {% endif %}
           </div>
         </div>
       </div>

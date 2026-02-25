@@ -7,7 +7,7 @@ import string
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Category, Product, Order, OrderItem, CartItem
+from models import db, User, Category, Product, Order, OrderItem, CartItem, EscrowDispute
 from config import Config
 from translations import TRANSLATIONS, SUPPORTED_LANGUAGES, CURRENCIES, CRYPTO_RATES, SEO_KEYWORDS
 
@@ -285,12 +285,29 @@ def cart_remove():
     flash('Item removed from cart.', 'info')
     return redirect(url_for('cart'))
 
+@app.route('/checkout/escrow-choice', methods=['GET', 'POST'])
+def escrow_choice():
+    """Ask the buyer whether they want escrow protection before they fill in details."""
+    items, total = get_cart_items()
+    if not items:
+        flash('Your cart is empty.', 'warning')
+        return redirect(url_for('shop'))
+    if request.method == 'POST':
+        choice = request.form.get('use_escrow', 'no')
+        session['use_escrow'] = (choice == 'yes')
+        return redirect(url_for('checkout'))
+    return render_template('escrow_choice.html', cart_items=items, total=total)
+
 @app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
     items, total = get_cart_items()
     if not items:
         flash('Your cart is empty.', 'warning')
         return redirect(url_for('shop'))
+    # If escrow preference not set yet, ask first
+    if 'use_escrow' not in session:
+        return redirect(url_for('escrow_choice'))
+    use_escrow = session.pop('use_escrow', False)
     if request.method == 'POST':
         order_number = generate_order_number()
         while Order.query.filter_by(order_number=order_number).first():
@@ -308,6 +325,8 @@ def checkout():
             zip_code=request.form.get('zip_code'),
             total=total,
             payment_method=payment_method,
+            use_escrow=use_escrow,
+            escrow_status='holding' if use_escrow else 'none',
         )
         db.session.add(order)
         db.session.flush()
@@ -317,6 +336,8 @@ def checkout():
             db.session.add(oi)
         db.session.commit()
         session['cart'] = {}
+        if use_escrow:
+            return redirect(url_for('escrow_panel', order_number=order_number))
         return redirect(url_for('order_confirmation', order_number=order_number))
     wallets = {
         'BTC': app.config['BTC_WALLET'],
@@ -324,20 +345,121 @@ def checkout():
         'USDT': app.config['USDT_WALLET'],
         'TRX': app.config['TRX_WALLET'],
     }
-    return render_template('checkout.html', cart_items=items, total=total, wallets=wallets)
+    return render_template('checkout.html', cart_items=items, total=total,
+                           wallets=wallets, use_escrow=use_escrow)
+
+# ---- Escrow routes ----
+
+def _wallet_map():
+    return {
+        'BTC':  app.config['BTC_WALLET'],
+        'XMR':  app.config['XMR_WALLET'],
+        'USDT': app.config['USDT_WALLET'],
+        'TRX':  app.config['TRX_WALLET'],
+    }
+
+@app.route('/escrow/<order_number>')
+def escrow_panel(order_number):
+    """Escrow payment panel — buyer pays here; funds held until receipt confirmed."""
+    order = Order.query.filter_by(order_number=order_number).first_or_404()
+    wallets = _wallet_map()
+    wallet_address = wallets.get(order.payment_method, app.config['BTC_WALLET'])
+    qr_data = generate_qr_code(wallet_address)
+    return render_template('escrow_panel.html', order=order,
+                           wallet_address=wallet_address, qr_code=qr_data)
+
+@app.route('/escrow/<order_number>/submit-payment', methods=['POST'])
+def escrow_submit_payment(order_number):
+    """Buyer submits their transaction hash for an escrow order."""
+    order = Order.query.filter_by(order_number=order_number).first_or_404()
+    order.transaction_hash = request.form.get('transaction_hash', '').strip()
+    order.sending_wallet   = request.form.get('sending_wallet', '').strip()
+    order.payment_status   = 'submitted'
+    db.session.commit()
+    flash('Payment proof submitted. Funds will be held in escrow until you confirm receipt.', 'success')
+    return redirect(url_for('escrow_panel', order_number=order_number))
+
+@app.route('/escrow/<order_number>/confirm-receipt', methods=['POST'])
+def escrow_confirm_receipt(order_number):
+    """Buyer confirms they received the goods — releases escrow to vendor."""
+    order = Order.query.filter_by(order_number=order_number).first_or_404()
+    if order.escrow_status not in ('holding', 'released'):
+        flash('This order cannot be confirmed at this stage.', 'warning')
+        return redirect(url_for('escrow_panel', order_number=order_number))
+    order.buyer_confirmed = True
+    order.escrow_status   = 'released'
+    order.order_status    = 'delivered'
+    order.payment_status  = 'confirmed'
+    db.session.commit()
+    flash('Thank you! You have confirmed receipt. Payment has been released to the vendor.', 'success')
+    return redirect(url_for('escrow_panel', order_number=order_number))
+
+@app.route('/escrow/<order_number>/dispute', methods=['GET', 'POST'])
+def escrow_dispute(order_number):
+    """Buyer opens a dispute for an escrow order."""
+    order = Order.query.filter_by(order_number=order_number).first_or_404()
+    if order.escrow_status not in ('holding',):
+        flash('A dispute can only be opened while payment is held in escrow.', 'warning')
+        return redirect(url_for('escrow_panel', order_number=order_number))
+    if order.dispute:
+        flash('A dispute already exists for this order.', 'info')
+        return redirect(url_for('escrow_panel', order_number=order_number))
+    if request.method == 'POST':
+        reason = request.form.get('reason', '').strip()
+        if not reason:
+            flash('Please provide a reason for the dispute.', 'danger')
+            return render_template('escrow_dispute.html', order=order)
+        image_path = None
+        if 'dispute_image' in request.files:
+            f = request.files['dispute_image']
+            if f and f.filename:
+                import uuid, os
+                ext = os.path.splitext(f.filename)[1].lower()
+                if ext not in ('.jpg', '.jpeg', '.png', '.gif', '.webp'):
+                    flash('Invalid image format. Use JPG, PNG, GIF or WEBP.', 'danger')
+                    return render_template('escrow_dispute.html', order=order)
+                fname = f'dispute_{order_number}_{uuid.uuid4().hex[:8]}{ext}'
+                save_path = os.path.join(app.root_path, 'static', 'uploads', fname)
+                f.save(save_path)
+                image_path = f'uploads/{fname}'
+        dispute = EscrowDispute(
+            order_id=order.id,
+            reason=reason,
+            image_path=image_path,
+            status='open',
+        )
+        order.escrow_status = 'disputed'
+        db.session.add(dispute)
+        db.session.commit()
+        flash('Dispute opened. A moderator will review your case and contact you.', 'success')
+        return redirect(url_for('escrow_panel', order_number=order_number))
+    return render_template('escrow_dispute.html', order=order)
+
+@app.route('/escrow/<order_number>/dispute/extra-proof', methods=['POST'])
+def escrow_dispute_extra_proof(order_number):
+    """Buyer submits additional proof requested by admin."""
+    order = Order.query.filter_by(order_number=order_number).first_or_404()
+    if not order.dispute:
+        flash('No dispute found for this order.', 'danger')
+        return redirect(url_for('escrow_panel', order_number=order_number))
+    order.dispute.extra_proof_submitted = request.form.get('extra_proof', '').strip()
+    order.dispute.updated_at = datetime.utcnow()
+    db.session.commit()
+    flash('Additional proof submitted. The moderator has been notified.', 'success')
+    return redirect(url_for('escrow_panel', order_number=order_number))
+
 
 @app.route('/order/confirmation/<order_number>')
 def order_confirmation(order_number):
     order = Order.query.filter_by(order_number=order_number).first_or_404()
-    wallets = {
-        'BTC': app.config['BTC_WALLET'],
-        'XMR': app.config['XMR_WALLET'],
-        'USDT': app.config['USDT_WALLET'],
-        'TRX': app.config['TRX_WALLET'],
-    }
+    # Escrow orders live in the escrow panel, not here
+    if order.use_escrow:
+        return redirect(url_for('escrow_panel', order_number=order_number))
+    wallets = _wallet_map()
     wallet_address = wallets.get(order.payment_method, app.config['BTC_WALLET'])
     qr_data = generate_qr_code(wallet_address)
-    return render_template('order_confirmation.html', order=order, wallet_address=wallet_address, qr_code=qr_data)
+    return render_template('order_confirmation.html', order=order,
+                           wallet_address=wallet_address, qr_code=qr_data)
 
 @app.route('/order/tracking', methods=['GET', 'POST'])
 def order_tracking():
@@ -483,10 +605,12 @@ def admin_required(f):
 def admin_index():
     total_orders = Order.query.count()
     pending_orders = Order.query.filter_by(payment_status='pending').count()
+    open_disputes = EscrowDispute.query.filter_by(status='open').count()
     revenue = db.session.query(db.func.sum(Order.total)).filter(Order.payment_status=='confirmed').scalar() or 0
     recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
     return render_template('admin/index.html', total_orders=total_orders,
                            pending_orders=pending_orders, revenue=revenue,
+                           open_disputes=open_disputes,
                            recent_orders=recent_orders)
 
 @app.route('/admin/products')
@@ -620,6 +744,46 @@ def admin_delete_category(id):
     db.session.commit()
     flash('Category deleted.', 'info')
     return redirect(url_for('admin_categories'))
+
+
+@app.route('/admin/orders/<order_number>/escrow-action', methods=['POST'])
+@login_required
+@admin_required
+def admin_escrow_action(order_number):
+    """Admin releases or refunds escrow, or requests more proof from buyer."""
+    order = Order.query.filter_by(order_number=order_number).first_or_404()
+    action = request.form.get('action')
+    if action == 'release':
+        order.escrow_status  = 'released'
+        order.payment_status = 'confirmed'
+        order.order_status   = 'delivered'
+        if order.dispute:
+            order.dispute.status = 'resolved_release'
+        db.session.commit()
+        flash('Escrow released — funds sent to vendor.', 'success')
+    elif action == 'refund':
+        order.escrow_status  = 'refunded'
+        order.payment_status = 'refunded'
+        order.order_status   = 'cancelled'
+        if order.dispute:
+            order.dispute.status = 'resolved_refund'
+        db.session.commit()
+        flash('Escrow refunded — funds returned to buyer.', 'success')
+    elif action == 'request_proof':
+        if order.dispute:
+            order.dispute.extra_proof_requested = True
+            order.dispute.extra_proof_message   = request.form.get('proof_message', '').strip()
+            order.dispute.status = 'under_review'
+            db.session.commit()
+            flash('Additional proof requested from buyer.', 'info')
+    elif action == 'add_notes':
+        if order.dispute:
+            order.dispute.admin_notes = request.form.get('admin_notes', '').strip()
+            order.dispute.status = 'under_review'
+            db.session.commit()
+            flash('Admin notes saved.', 'info')
+    return redirect(url_for('admin_order_detail', order_number=order_number))
+
 
 if __name__ == '__main__':
     with app.app_context():

@@ -469,3 +469,22 @@ body {
   border-color: var(--accent);
   text-decoration: none;
 }
+
+/* ===== ESCROW SYSTEM ===== */
+.checkout-escrow-badge {
+  background: linear-gradient(135deg, rgba(108,99,255,0.3), rgba(6,214,160,0.2));
+  border: 1px solid rgba(108,99,255,0.5);
+  color: #a89fff;
+  font-size: .82rem;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+.checkout-escrow-info {
+  background: rgba(108,99,255,0.1);
+  border: 1px solid rgba(108,99,255,0.3);
+  border-radius: 10px;
+  color: #c5c5d8;
+  padding: 12px 18px;
+  font-size: .9rem;
+}
+.admin-escrow-card { border: 1px solid rgba(108,99,255,0.3) !important; }

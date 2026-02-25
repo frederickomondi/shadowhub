@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Escrow Protection – ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <div class="text-center mb-5">
+        <div class="escrow-hero-icon mb-3">
+          <i class="fas fa-shield-alt fa-4x text-accent"></i>
+        </div>
+        <h2 class="text-light">Would you like <span class="text-accent">Escrow Protection</span>?</h2>
+        <p class="text-muted">Your funds are held safely in our escrow wallets until you confirm receipt of your order.</p>
+      </div>
+
+      {# Order summary mini #}
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h6 class="text-muted mb-3"><i class="fas fa-shopping-cart me-2"></i>Your Order — {{ format_price(total) }}</h6>
+          {% for item in cart_items %}
+          <div class="d-flex justify-content-between text-muted small mb-1">
+            <span>{{ item.product.name }} × {{ item.quantity }}</span>
+            <span class="text-accent">{{ format_price(item.subtotal) }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# Side-by-side choice cards #}
+      <div class="row g-4 mb-4">
+
+        {# YES – Escrow #}
+        <div class="col-md-6">
+          <div class="escrow-option-card escrow-yes-card h-100">
+            <div class="escrow-option-icon mb-3"><i class="fas fa-shield-alt fa-2x text-accent"></i></div>
+            <h5 class="text-light">Use Escrow <span class="badge escrow-recommended-badge ms-1">Recommended</span></h5>
+            <ul class="list-unstyled text-muted small mt-3 mb-4">
+              <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Funds held securely until you confirm receipt</li>
+              <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Open a dispute if goods don't arrive as described</li>
+              <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Moderator review for all disputes</li>
+              <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Refund protection if vendor fails to deliver</li>
+              <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Payment released to vendor only after your confirmation</li>
+            </ul>
+            <form method="post" action="{{ url_for('escrow_choice') }}" class="mt-auto">
+              <input type="hidden" name="use_escrow" value="yes">
+              <button type="submit" class="btn btn-accent w-100 btn-lg">
+                <i class="fas fa-shield-alt me-2"></i>Yes, Use Escrow
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {# NO – Direct payment #}
+        <div class="col-md-6">
+          <div class="escrow-option-card escrow-no-card h-100">
+            <div class="escrow-option-icon mb-3"><i class="fas fa-bolt fa-2x" style="color:#e94560"></i></div>
+            <h5 class="text-light">Direct Payment</h5>
+            <ul class="list-unstyled text-muted small mt-3 mb-4">
+              <li class="mb-2"><i class="fas fa-bolt" style="color:#e94560"></i><span class="ms-2">Faster checkout process</span></li>
+              <li class="mb-2"><i class="fas fa-exclamation-triangle text-warning me-2"></i>No dispute protection</li>
+              <li class="mb-2"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Payment goes directly to vendor</li>
+              <li class="mb-2"><i class="fas fa-exclamation-triangle text-warning me-2"></i>No refund guarantee if goods differ</li>
+            </ul>
+            <div class="alert escrow-warning-alert small mb-3">
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <strong>Warning:</strong> Do not send coins outside the escrow system. ShadowHub cannot recover funds sent directly.
+            </div>
+            <form method="post" action="{{ url_for('escrow_choice') }}">
+              <input type="hidden" name="use_escrow" value="no">
+              <button type="submit" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-arrow-right me-2"></i>No, Pay Directly
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="text-center">
+        <a href="{{ url_for('cart') }}" class="text-muted small text-decoration-none">
+          <i class="fas fa-arrow-left me-1"></i>Back to Cart
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.escrow-hero-icon { animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+.escrow-option-card {
+  background: #1a1a2e;
+  border: 1px solid rgba(108,99,255,0.25);
+  border-radius: 14px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color .25s, box-shadow .25s;
+}
+.escrow-yes-card:hover { border-color: var(--accent); box-shadow: 0 0 24px rgba(108,99,255,0.25); }
+.escrow-no-card  { border-color: rgba(233,69,96,0.2); }
+.escrow-no-card:hover { border-color: #e94560; }
+.escrow-option-icon { font-size: 1.6rem; }
+
+.escrow-recommended-badge {
+  background: rgba(108,99,255,0.2);
+  color: #a89fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 3px 9px;
+  vertical-align: middle;
+}
+.escrow-warning-alert {
+  background: rgba(233,69,96,0.08);
+  border: 1px solid rgba(233,69,96,0.3);
+  border-radius: 8px;
+  color: #f5a0aa;
+  padding: 10px 14px;
+}
+</style>
+{% endblock %}

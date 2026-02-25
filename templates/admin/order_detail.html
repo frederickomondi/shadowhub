@@ -124,7 +124,7 @@
     </div>
 
     <!-- Update Status -->
-    <div class="card dark-card">
+    <div class="card dark-card {% if order.use_escrow %}mb-4{% endif %}">
       <div class="card-body">
         <h5 class="text-light mb-3">Update Order Status</h5>
         <form action="{{ url_for('admin_update_order_status', order_number=order.order_number) }}" method="post">
@@ -140,6 +140,152 @@
         </form>
       </div>
     </div>
+
+    {# ── Escrow Admin Panel (only shown for escrow orders) ── #}
+    {% if order.use_escrow %}
+    <div class="card dark-card admin-escrow-card">
+      <div class="card-body">
+        <h5 class="mb-3">
+          <i class="fas fa-shield-alt text-accent me-2"></i>Escrow Management
+          <span class="badge ms-2 escrow-admin-badge escrow-{{ order.escrow_status }}">
+            {{ order.escrow_status|replace('_',' ')|title }}
+          </span>
+        </h5>
+
+        {# Escrow status summary #}
+        <div class="row g-2 mb-4">
+          <div class="col-6">
+            <div class="escrow-admin-stat">
+              <div class="text-muted small">Buyer Confirmed</div>
+              <div class="{% if order.buyer_confirmed %}text-success{% else %}text-muted{% endif %} fw-bold">
+                {{ '✅ Yes' if order.buyer_confirmed else '⏳ Not yet' }}
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="escrow-admin-stat">
+              <div class="text-muted small">Dispute Open</div>
+              <div class="{% if order.dispute %}text-warning{% else %}text-muted{% endif %} fw-bold">
+                {{ '⚠️ Yes' if order.dispute else 'None' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Dispute details #}
+        {% if order.dispute %}
+        <div class="admin-dispute-box mb-4">
+          <h6 class="text-warning mb-2"><i class="fas fa-flag me-2"></i>Dispute Details</h6>
+          <div class="mb-2">
+            <span class="text-muted small">Status:</span>
+            <span class="badge bg-warning text-dark ms-1">{{ order.dispute.status|replace('_',' ')|title }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="text-muted small">Reason:</span>
+            <p class="text-light mb-0">{{ order.dispute.reason }}</p>
+          </div>
+          {% if order.dispute.image_path %}
+          <div class="mb-2">
+            <span class="text-muted small">Evidence:</span><br>
+            <a href="{{ url_for('static', filename=order.dispute.image_path) }}" target="_blank">
+              <img src="{{ url_for('static', filename=order.dispute.image_path) }}"
+                   alt="Dispute evidence" class="img-fluid rounded mt-1" style="max-height:150px;">
+            </a>
+          </div>
+          {% endif %}
+          {% if order.dispute.extra_proof_submitted %}
+          <div class="mb-2">
+            <span class="text-muted small">Additional Proof Submitted:</span>
+            <p class="text-light small mb-0">{{ order.dispute.extra_proof_submitted }}</p>
+          </div>
+          {% endif %}
+          {% if order.dispute.extra_proof_requested %}
+          <div class="alert alert-info small mb-2 py-2">
+            <i class="fas fa-info-circle me-1"></i>Additional proof was requested.
+            {% if not order.dispute.extra_proof_submitted %}Awaiting buyer response.{% else %}Buyer has responded.{% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        {# Admin notes #}
+        <form action="{{ url_for('admin_escrow_action', order_number=order.order_number) }}" method="post" class="mb-3">
+          <input type="hidden" name="action" value="add_notes">
+          <label class="form-label text-muted small">Moderator Notes (visible to admin only)</label>
+          <textarea name="admin_notes" class="form-control dark-input mb-2" rows="2"
+                    placeholder="Internal notes about this dispute…">{{ order.dispute.admin_notes or '' }}</textarea>
+          <button type="submit" class="btn btn-sm btn-outline-secondary w-100">
+            <i class="fas fa-save me-1"></i>Save Notes
+          </button>
+        </form>
+
+        {# Request extra proof #}
+        {% if not order.dispute.extra_proof_requested %}
+        <form action="{{ url_for('admin_escrow_action', order_number=order.order_number) }}" method="post" class="mb-3">
+          <input type="hidden" name="action" value="request_proof">
+          <label class="form-label text-muted small">Request Additional Proof from Buyer</label>
+          <textarea name="proof_message" class="form-control dark-input mb-2" rows="2"
+                    placeholder="Tell the buyer exactly what proof you need…" required></textarea>
+          <button type="submit" class="btn btn-sm btn-outline-info w-100">
+            <i class="fas fa-question-circle me-1"></i>Request More Proof
+          </button>
+        </form>
+        {% endif %}
+        {% endif %}{# end if dispute #}
+
+        {# Release / Refund buttons — only if not yet resolved #}
+        {% if order.escrow_status in ('holding','disputed') %}
+        <div class="row g-2 mt-2">
+          <div class="col-6">
+            <form action="{{ url_for('admin_escrow_action', order_number=order.order_number) }}" method="post"
+                  onsubmit="return confirm('Release escrow funds to the vendor?')">
+              <input type="hidden" name="action" value="release">
+              <button type="submit" class="btn btn-success w-100">
+                <i class="fas fa-check me-1"></i>Release Funds
+              </button>
+            </form>
+          </div>
+          <div class="col-6">
+            <form action="{{ url_for('admin_escrow_action', order_number=order.order_number) }}" method="post"
+                  onsubmit="return confirm('Refund escrow funds to the buyer?')">
+              <input type="hidden" name="action" value="refund">
+              <button type="submit" class="btn btn-danger w-100">
+                <i class="fas fa-undo me-1"></i>Refund Buyer
+              </button>
+            </form>
+          </div>
+        </div>
+        {% elif order.escrow_status == 'released' %}
+        <div class="alert alert-success mb-0 py-2 small"><i class="fas fa-check-circle me-1"></i>Escrow released — funds sent to vendor.</div>
+        {% elif order.escrow_status == 'refunded' %}
+        <div class="alert alert-info mb-0 py-2 small"><i class="fas fa-undo me-1"></i>Escrow refunded — buyer reimbursed.</div>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endif %}{# end if use_escrow #}
+
   </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-escrow-card { border: 1px solid rgba(108,99,255,0.3); }
+.escrow-admin-badge { font-size:.78rem; padding:4px 10px; border-radius:12px; }
+.escrow-holding  { background:rgba(108,99,255,0.2); color:#a89fff; }
+.escrow-disputed { background:rgba(255,193,7,0.2);  color:#ffc107; }
+.escrow-released { background:rgba(6,214,160,0.2);  color:#06d6a0; }
+.escrow-refunded { background:rgba(233,69,96,0.2);  color:#e94560; }
+.escrow-none     { background:rgba(120,120,140,0.2);color:#909099; }
+.escrow-admin-stat {
+  background: rgba(108,99,255,0.07);
+  border: 1px solid rgba(108,99,255,0.15);
+  border-radius: 8px; padding: 10px 12px;
+}
+.admin-dispute-box {
+  background: rgba(255,193,7,0.06);
+  border: 1px solid rgba(255,193,7,0.25);
+  border-radius: 10px; padding: 16px;
+}
+</style>
 {% endblock %}
