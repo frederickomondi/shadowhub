@@ -1,0 +1,71 @@
+{% extends 'admin/base.html' %}
+{% block title %}Categories - Admin ShadowHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="text-light mb-0"><i class="fas fa-tags me-2 text-accent"></i>Categories</h2>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card dark-card">
+      <div class="card-body">
+        <h5 class="text-light mb-4">Add New Category</h5>
+        <form method="post" action="{{ url_for('admin_add_category') }}">
+          <div class="mb-3">
+            <label class="form-label text-muted small">Category Name *</label>
+            <input type="text" name="name" class="form-control dark-input" required placeholder="e.g. Electronics">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Slug</label>
+            <input type="text" name="slug" class="form-control dark-input" placeholder="e.g. electronics (auto-generated if blank)">
+          </div>
+          <div class="mb-4">
+            <label class="form-label text-muted small">Description</label>
+            <textarea name="description" class="form-control dark-input" rows="3" placeholder="Category description..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-accent w-100"><i class="fas fa-plus me-2"></i>Add Category</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card dark-card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table dark-table mb-0">
+            <thead>
+              <tr>
+                <th class="text-muted">ID</th>
+                <th class="text-muted">Name</th>
+                <th class="text-muted">Slug</th>
+                <th class="text-muted">Products</th>
+                <th class="text-muted">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in categories %}
+              <tr>
+                <td class="text-muted">{{ cat.id }}</td>
+                <td class="text-light">{{ cat.name }}</td>
+                <td class="text-muted small"><code>{{ cat.slug }}</code></td>
+                <td class="text-muted">{{ cat.products|length }}</td>
+                <td>
+                  <a href="{{ url_for('shop', category=cat.slug) }}" target="_blank" class="btn btn-sm btn-outline-secondary me-1"><i class="fas fa-eye"></i></a>
+                  <form action="{{ url_for('admin_delete_category', id=cat.id) }}" method="post" class="d-inline" onsubmit="return confirm('Delete category {{ cat.name }}? Products in this category will not be deleted.')">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+              {% if not categories %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No categories yet.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

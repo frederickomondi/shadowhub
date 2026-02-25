@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block title %}Order Confirmation - {{ order.order_number }} - ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <div class="order-success-icon mb-3">
+      <i class="fas fa-check-circle fa-4x text-success"></i>
+    </div>
+    <h2 class="text-light">Order Placed Successfully!</h2>
+    <p class="text-muted">Your order <span class="text-accent fw-bold">{{ order.order_number }}</span> has been received.</p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Payment Instructions -->
+    <div class="col-lg-7">
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h5 class="text-accent mb-3"><i class="fab fa-bitcoin me-2"></i>Payment Instructions</h5>
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Important:</strong> Send exactly <strong>${{ "%.2f"|format(order.total) }} USD</strong> worth of <strong>{{ order.payment_method }}</strong> to the address below. You have <strong id="countdown-display">30:00</strong> to complete your payment.
+          </div>
+
+          <div class="payment-step mb-4">
+            <h6 class="text-light">Step 1: Send Payment</h6>
+            <p class="text-muted small">Send <strong class="text-accent">${{ "%.2f"|format(order.total) }}</strong> in {{ order.payment_method }} to this wallet address:</p>
+            <div class="wallet-address-box p-3 rounded mb-3">
+              <code id="wallet-address" class="text-accent break-all">{{ wallet_address }}</code>
+              <button class="btn btn-sm btn-outline-accent ms-2" onclick="copyWallet()"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="text-center">
+              <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid rounded" style="max-width:200px; border:3px solid #6c63ff;">
+              <p class="text-muted small mt-2">Scan QR code to copy address</p>
+            </div>
+          </div>
+
+          <div class="payment-step mb-4">
+            <h6 class="text-light">Step 2: Submit Transaction Hash</h6>
+            <p class="text-muted small">After sending, paste your transaction hash below so we can verify your payment.</p>
+
+            {% if order.payment_status == 'submitted' or order.payment_status == 'confirmed' %}
+            <div class="alert alert-success">
+              <i class="fas fa-check me-2"></i>Payment information submitted! We are verifying your transaction.
+              {% if order.transaction_hash %}
+              <div class="mt-2"><small>TX Hash: <code>{{ order.transaction_hash }}</code></small></div>
+              {% endif %}
+            </div>
+            {% else %}
+            <form action="{{ url_for('submit_payment') }}" method="post">
+              <input type="hidden" name="order_number" value="{{ order.order_number }}">
+              <div class="mb-3">
+                <label class="form-label text-muted small">Transaction Hash / TXID *</label>
+                <input type="text" name="transaction_hash" class="form-control dark-input" required placeholder="Paste your transaction hash here...">
+              </div>
+              <div class="mb-3">
+                <label class="form-label text-muted small">Your Sending Wallet Address (Optional)</label>
+                <input type="text" name="sending_wallet" class="form-control dark-input" placeholder="Your {{ order.payment_method }} wallet address">
+              </div>
+              <button type="submit" class="btn btn-success w-100">
+                <i class="fas fa-paper-plane me-2"></i>Submit Payment Proof
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Timer -->
+      <div class="card dark-card border-warning">
+        <div class="card-body text-center">
+          <h6 class="text-warning"><i class="fas fa-clock me-2"></i>Payment Window</h6>
+          <div class="countdown-timer" id="countdown-display-large">30:00</div>
+          <p class="text-muted small mt-2">Payment must be received within 30 minutes of order placement.</p>
+          <div class="progress mt-2" style="height:6px;">
+            <div class="progress-bar bg-warning" id="timer-progress" style="width:100%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Details -->
+    <div class="col-lg-5">
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h5 class="text-light mb-3">Order Details</h5>
+          <div class="order-detail-row mb-2">
+            <span class="text-muted">Order Number:</span>
+            <span class="text-accent fw-bold">{{ order.order_number }}</span>
+          </div>
+          <div class="order-detail-row mb-2">
+            <span class="text-muted">Date:</span>
+            <span class="text-light">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+          </div>
+          <div class="order-detail-row mb-2">
+            <span class="text-muted">Payment Method:</span>
+            <span class="text-light">{{ order.payment_method }}</span>
+          </div>
+          <div class="order-detail-row mb-2">
+            <span class="text-muted">Payment Status:</span>
+            <span class="badge bg-{{ 'success' if order.payment_status == 'confirmed' else ('warning text-dark' if order.payment_status == 'submitted' else 'secondary') }}">{{ order.payment_status|title }}</span>
+          </div>
+          <div class="order-detail-row mb-2">
+            <span class="text-muted">Order Status:</span>
+            <span class="badge bg-info">{{ order.order_status|title }}</span>
+          </div>
+          <hr class="border-secondary">
+          <h6 class="text-muted mb-3">Items Ordered</h6>
+          {% for item in order.items %}
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-light small">{{ item.product.name }} x{{ item.quantity }}</span>
+            <span class="text-accent">${{ "%.2f"|format(item.price * item.quantity) }}</span>
+          </div>
+          {% endfor %}
+          <hr class="border-secondary">
+          <div class="d-flex justify-content-between">
+            <span class="text-light fw-bold">Total</span>
+            <span class="text-accent fw-bold fs-5">${{ "%.2f"|format(order.total) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h6 class="text-light mb-3">Customer Information</h6>
+          <p class="text-muted mb-1"><i class="fas fa-user me-2 text-accent"></i>{{ order.name }}</p>
+          <p class="text-muted mb-1"><i class="fas fa-envelope me-2 text-accent"></i>{{ order.email }}</p>
+          {% if order.phone %}<p class="text-muted mb-1"><i class="fas fa-phone me-2 text-accent"></i>{{ order.phone }}</p>{% endif %}
+          {% if order.address %}<p class="text-muted mb-0"><i class="fas fa-map-marker-alt me-2 text-accent"></i>{{ order.address }}, {{ order.city }}, {{ order.country }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="d-grid gap-2">
+        <a href="{{ url_for('order_tracking') }}" class="btn btn-outline-accent"><i class="fas fa-search me-2"></i>Track Your Order</a>
+        <a href="{{ url_for('shop') }}" class="btn btn-outline-secondary"><i class="fas fa-store me-2"></i>Continue Shopping</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyWallet() {
+  const addr = document.getElementById('wallet-address').textContent.trim();
+  navigator.clipboard.writeText(addr).then(() => {
+    showToast('Wallet address copied!');
+  });
+}
+
+// Countdown timer - 30 minutes from page load
+const totalSeconds = 30 * 60;
+let remaining = totalSeconds;
+function updateTimer() {
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  const display = mins + ':' + (secs < 10 ? '0' : '') + secs;
+  const el1 = document.getElementById('countdown-display');
+  const el2 = document.getElementById('countdown-display-large');
+  if (el1) el1.textContent = display;
+  if (el2) el2.textContent = display;
+  const progress = document.getElementById('timer-progress');
+  if (progress) progress.style.width = ((remaining / totalSeconds) * 100) + '%';
+  if (remaining <= 0) {
+    clearInterval(timerInterval);
+    if (el2) el2.textContent = 'EXPIRED';
+    if (progress) { progress.style.width = '0%'; progress.classList.replace('bg-warning', 'bg-danger'); }
+    return;
+  }
+  remaining--;
+}
+updateTimer();
+const timerInterval = setInterval(updateTimer, 1000);
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 100);
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+}
+</script>
+{% endblock %}

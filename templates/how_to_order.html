@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}How to Order - ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <h1 class="text-light">How to <span class="text-accent">Order</span></h1>
+    <p class="text-muted fs-5">Simple, anonymous, and secure - here's how it works</p>
+  </div>
+
+  <!-- Main Steps -->
+  <div class="row g-4 mb-5">
+    <div class="col-lg-3 col-md-6">
+      <div class="how-step-card p-4 dark-card rounded text-center h-100">
+        <div class="step-circle mb-3">1</div>
+        <i class="fas fa-search fa-2x text-accent mb-3"></i>
+        <h5 class="text-light">Browse Products</h5>
+        <p class="text-muted small">Browse our extensive catalog. Use filters to find exactly what you need. No account required to browse.</p>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="how-step-card p-4 dark-card rounded text-center h-100">
+        <div class="step-circle mb-3">2</div>
+        <i class="fas fa-cart-plus fa-2x text-accent mb-3"></i>
+        <h5 class="text-light">Add to Cart</h5>
+        <p class="text-muted small">Add your selected items to cart. You can adjust quantities or remove items at any time before checkout.</p>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="how-step-card p-4 dark-card rounded text-center h-100">
+        <div class="step-circle mb-3">3</div>
+        <i class="fab fa-bitcoin fa-2x text-accent mb-3"></i>
+        <h5 class="text-light">Pay with Crypto</h5>
+        <p class="text-muted small">Enter your contact info and select your preferred cryptocurrency. Send the exact amount to our wallet.</p>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="how-step-card p-4 dark-card rounded text-center h-100">
+        <div class="step-circle mb-3">4</div>
+        <i class="fas fa-shipping-fast fa-2x text-accent mb-3"></i>
+        <h5 class="text-light">Receive Order</h5>
+        <p class="text-muted small">After payment verification, your order will be processed and shipped. Track your order any time.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Guide -->
+  <div class="card dark-card mb-4">
+    <div class="card-body">
+      <h3 class="text-accent mb-4"><i class="fab fa-bitcoin me-2"></i>Cryptocurrency Payment Guide</h3>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <h5 class="text-light mb-3">Accepted Cryptocurrencies</h5>
+          <div class="crypto-guide-item mb-3 p-3 rounded" style="background:rgba(255,255,255,0.03)">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fab fa-bitcoin text-warning fa-2x me-3"></i>
+              <div>
+                <strong class="text-light">Bitcoin (BTC)</strong>
+                <small class="text-muted d-block">Most popular - widely accepted</small>
+              </div>
+            </div>
+          </div>
+          <div class="crypto-guide-item mb-3 p-3 rounded" style="background:rgba(255,255,255,0.03)">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fas fa-coins text-info fa-2x me-3"></i>
+              <div>
+                <strong class="text-light">Monero (XMR)</strong>
+                <small class="text-muted d-block">Maximum privacy - untraceable</small>
+              </div>
+            </div>
+          </div>
+          <div class="crypto-guide-item mb-3 p-3 rounded" style="background:rgba(255,255,255,0.03)">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fas fa-dollar-sign text-success fa-2x me-3"></i>
+              <div>
+                <strong class="text-light">USDT (TRC20)</strong>
+                <small class="text-muted d-block">Stable value - no price volatility</small>
+              </div>
+            </div>
+          </div>
+          <div class="crypto-guide-item p-3 rounded" style="background:rgba(255,255,255,0.03)">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fas fa-bolt text-primary fa-2x me-3"></i>
+              <div>
+                <strong class="text-light">TRON (TRX)</strong>
+                <small class="text-muted d-block">Fast transactions - low fees</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <h5 class="text-light mb-3">Payment Process</h5>
+          <ol class="text-muted">
+            <li class="mb-3">Select your items and proceed to checkout.</li>
+            <li class="mb-3">Enter your contact information and select payment method.</li>
+            <li class="mb-3">After placing order, you'll receive a wallet address and QR code.</li>
+            <li class="mb-3">Send the exact USD equivalent in your chosen cryptocurrency.</li>
+            <li class="mb-3">You have <strong class="text-warning">30 minutes</strong> to complete the payment.</li>
+            <li class="mb-3">Copy your transaction hash (TXID) from your wallet.</li>
+            <li class="mb-3">Paste the TXID on the confirmation page to verify payment.</li>
+            <li>We will confirm your payment within 1-2 hours and process your order.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Quick -->
+  <div class="card dark-card">
+    <div class="card-body">
+      <h4 class="text-accent mb-4">Quick Questions</h4>
+      <div class="accordion" id="quickFaq">
+        <div class="accordion-item dark-accordion">
+          <h2 class="accordion-header">
+            <button class="accordion-button dark-accordion-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+              How long does payment verification take?
+            </button>
+          </h2>
+          <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#quickFaq">
+            <div class="accordion-body text-muted">
+              Payment verification typically takes 1-2 hours depending on blockchain confirmation times. Bitcoin may take up to 6 confirmations. Monero and TRON are usually faster.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item dark-accordion">
+          <h2 class="accordion-header">
+            <button class="accordion-button dark-accordion-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+              What if I send the wrong amount?
+            </button>
+          </h2>
+          <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#quickFaq">
+            <div class="accordion-body text-muted">
+              If you send less than required, your order will be on hold. Contact our support team with your order number and transaction hash, and we will work with you to resolve the issue.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item dark-accordion">
+          <h2 class="accordion-header">
+            <button class="accordion-button dark-accordion-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+              Can I track my order after payment?
+            </button>
+          </h2>
+          <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#quickFaq">
+            <div class="accordion-body text-muted">
+              Yes! Visit our <a href="{{ url_for('order_tracking') }}" class="text-accent">Order Tracking</a> page and enter your order number and email to check the current status of your order.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

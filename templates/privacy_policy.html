@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Privacy Policy - ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <h1 class="text-light mb-2">Privacy <span class="text-accent">Policy</span></h1>
+      <p class="text-muted mb-5">Last updated: January 1, 2024</p>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">1. Information We Collect</h4>
+          <p class="text-muted">ShadowHub is committed to minimal data collection. We only collect information that is strictly necessary to process your orders:</p>
+          <ul class="text-muted">
+            <li>Order information: name, email, shipping address (if applicable)</li>
+            <li>Payment information: cryptocurrency transaction hashes (we never see or store private keys)</li>
+            <li>Usage data: anonymized browsing patterns to improve our service</li>
+          </ul>
+          <p class="text-muted">We do NOT collect: government IDs, credit card numbers, social security numbers, or any biometric data.</p>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">2. How We Use Your Information</h4>
+          <p class="text-muted">The information we collect is used exclusively for:</p>
+          <ul class="text-muted">
+            <li>Processing and fulfilling your orders</li>
+            <li>Communicating order status updates to you</li>
+            <li>Resolving disputes and providing customer support</li>
+            <li>Improving our platform and services</li>
+          </ul>
+          <p class="text-muted">We never sell, rent, or trade your personal information to third parties.</p>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">3. Data Retention</h4>
+          <p class="text-muted">We retain order data for a minimum period necessary to fulfill legal obligations and resolve disputes. After this period, your data is permanently deleted from our systems. You may request early deletion by contacting our support team.</p>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">4. Cookies and Tracking</h4>
+          <p class="text-muted">We use only essential cookies required for the website to function correctly (session management, cart storage). We do not use third-party tracking cookies, advertising cookies, or behavioral analytics tools.</p>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">5. Security</h4>
+          <p class="text-muted">We implement industry-standard security measures to protect your data:</p>
+          <ul class="text-muted">
+            <li>All data is encrypted in transit using TLS/SSL</li>
+            <li>Passwords are hashed using industry-standard algorithms</li>
+            <li>Regular security audits and penetration testing</li>
+            <li>Access controls limit who can view customer data</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">6. Your Rights</h4>
+          <p class="text-muted">You have the right to:</p>
+          <ul class="text-muted">
+            <li>Request access to the personal data we hold about you</li>
+            <li>Request correction of inaccurate data</li>
+            <li>Request deletion of your personal data</li>
+            <li>Opt-out of any marketing communications</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card dark-card">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">7. Contact Us</h4>
+          <p class="text-muted">If you have any questions about this Privacy Policy or our data practices, please contact us through our <a href="{{ url_for('contact') }}" class="text-accent">contact form</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
