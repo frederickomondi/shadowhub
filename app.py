@@ -142,14 +142,12 @@ def create_sample_data():
 
     # ── Top-level categories ──
     top_level = [
-        {'name': 'Clone Cards',        'slug': 'clone-cards',        'description': 'Cloned credit and debit cards'},
-        {'name': 'Counterfeit',        'slug': 'counterfeit',        'description': 'Counterfeit bills and currency'},
-        {'name': 'Documents',          'slug': 'documents',          'description': 'Fake and real documents'},
-        {'name': 'Drugs for sale',     'slug': 'drugs-for-sale',     'description': 'All types of drugs available'},
-        {'name': 'Guns for sale',      'slug': 'guns-for-sale',      'description': 'Firearms and weapons'},
-        {'name': 'Hire Expert Hacker', 'slug': 'hire-expert-hacker', 'description': 'Professional hacking services'},
-        {'name': 'Hit Man',            'slug': 'hit-man',            'description': 'Hitman services'},
-        {'name': 'Other Drugs',        'slug': 'other-drugs',        'description': 'Miscellaneous drugs'},
+        {'name': 'Electronics',  'slug': 'electronics',  'description': 'Gadgets, devices, and electronic accessories'},
+        {'name': 'Clothing',     'slug': 'clothing',     'description': 'Apparel and fashion items'},
+        {'name': 'Books',        'slug': 'books',        'description': 'Physical and digital books across all genres'},
+        {'name': 'Home & Garden','slug': 'home-garden',  'description': 'Home decor, furniture, and garden supplies'},
+        {'name': 'Sports',       'slug': 'sports',       'description': 'Sports equipment and outdoor gear'},
+        {'name': 'Toys & Games', 'slug': 'toys-games',   'description': 'Toys, board games, and entertainment'},
     ]
     cat_map = {}
     for data in top_level:
@@ -158,49 +156,43 @@ def create_sample_data():
         cat_map[data['slug']] = cat
     db.session.flush()
 
-    # ── Subcategories for Drugs for sale ──
-    drugs_subs = [
-        ('Anabolic steroids',       'anabolic-steroids'),
-        ('Anxiety pills',           'anxiety-pills'),
-        ('Cannabinoids',            'cannabinoids'),
-        ('Cannabis',                'cannabis'),
-        ('Cocaine',                 'cocaine'),
-        ('Nembutal pentobarbital',  'nembutal-pentobarbital'),
-        ('Opioids',                 'opioids'),
-        ('Pain Killer',             'pain-killer'),
-        ('Poisons',                 'poisons'),
+    # ── Subcategories for Electronics ──
+    electronics_subs = [
+        ('Smartphones',   'smartphones'),
+        ('Laptops',       'laptops'),
+        ('Accessories',   'accessories'),
     ]
-    for name, slug in drugs_subs:
+    for name, slug in electronics_subs:
         sub = Category(name=name, slug=slug,
                        description=f'{name} products',
-                       parent_id=cat_map['drugs-for-sale'].id)
+                       parent_id=cat_map['electronics'].id)
         db.session.add(sub)
         cat_map[slug] = sub
 
-    # ── Subcategories for Guns for sale ──
-    guns_subs = [
-        ('Ammunitions', 'ammunitions'),
-        ('Hand guns',   'hand-guns'),
-        ('Rifles',      'rifles'),
+    # ── Subcategories for Clothing ──
+    clothing_subs = [
+        ("Men's Wear",   'mens-wear'),
+        ("Women's Wear", 'womens-wear'),
+        ('Kids',         'kids'),
     ]
-    for name, slug in guns_subs:
+    for name, slug in clothing_subs:
         sub = Category(name=name, slug=slug,
-                       description=f'{name} for sale',
-                       parent_id=cat_map['guns-for-sale'].id)
+                       description=f'{name} clothing',
+                       parent_id=cat_map['clothing'].id)
         db.session.add(sub)
         cat_map[slug] = sub
     db.session.flush()
 
     # ── Sample products spread across categories ──
     products_data = [
-        {'name': 'Clone Visa Card',        'slug': 'clone-visa-card',        'description': 'Cloned Visa card with high balance, ready to use.', 'price': 299.99, 'stock': 88,  'cat': 'clone-cards',        'is_featured': True},
-        {'name': 'US Dollar Bills Bundle', 'slug': 'us-dollar-bills-bundle', 'description': 'High-quality counterfeit USD bills, undetectable.', 'price': 199.99, 'stock': 99,  'cat': 'counterfeit',        'is_featured': True},
-        {'name': 'Fake Passport',          'slug': 'fake-passport',          'description': 'Authentic-looking fake passport, any country.', 'price': 899.99, 'stock': 25,  'cat': 'documents',          'is_featured': True},
-        {'name': 'Anabolic Steroid Kit',   'slug': 'anabolic-steroid-kit',   'description': 'Complete anabolic steroid cycle kit.', 'price': 149.99, 'stock': 66,  'cat': 'anabolic-steroids',  'is_featured': True},
-        {'name': 'OG Kush (7g)',           'slug': 'og-kush-7g',             'description': 'Premium OG Kush cannabis, discreet packaging.', 'price': 79.99,  'stock': 77,  'cat': 'cannabis',           'is_featured': True},
-        {'name': 'Pure Cocaine (1g)',      'slug': 'pure-cocaine-1g',        'description': '99% pure cocaine, lab tested.', 'price': 129.99, 'stock': 77,  'cat': 'cocaine',            'is_featured': True},
-        {'name': 'Glock 19 Gen 5',        'slug': 'glock-19-gen-5',         'description': 'Glock 19 Gen 5 handgun, brand new, untraceable.', 'price': 599.99, 'stock': 21,  'cat': 'hand-guns',          'is_featured': True},
-        {'name': 'Hacking Service',        'slug': 'hacking-service',        'description': 'Professional ethical and grey-hat hacking services.', 'price': 499.99, 'stock': 1,   'cat': 'hire-expert-hacker', 'is_featured': True},
+        {'name': 'Wireless Bluetooth Headphones', 'slug': 'wireless-bluetooth-headphones', 'description': 'Premium over-ear headphones with active noise cancellation.', 'price': 79.99,  'stock': 50, 'cat': 'accessories',  'is_featured': True},
+        {'name': 'Laptop Stand',                  'slug': 'laptop-stand',                  'description': 'Adjustable aluminium laptop stand for better ergonomics.',    'price': 29.99,  'stock': 80, 'cat': 'accessories',  'is_featured': True},
+        {'name': 'Android Smartphone 128GB',      'slug': 'android-smartphone-128gb',      'description': 'Latest-generation Android phone with 6.5" display.',          'price': 349.99, 'stock': 30, 'cat': 'smartphones',  'is_featured': True},
+        {'name': 'Classic Fiction Novel',         'slug': 'classic-fiction-novel',         'description': 'Bestselling classic fiction paperback.',                       'price': 12.99,  'stock': 100,'cat': 'books',        'is_featured': True},
+        {'name': "Men's Running Jacket",          'slug': 'mens-running-jacket',           'description': 'Lightweight, water-resistant jacket for all weather runs.',    'price': 59.99,  'stock': 45, 'cat': 'mens-wear',    'is_featured': True},
+        {'name': "Women's Yoga Pants",            'slug': 'womens-yoga-pants',             'description': 'High-waist yoga pants with moisture-wicking fabric.',          'price': 39.99,  'stock': 60, 'cat': 'womens-wear',  'is_featured': True},
+        {'name': 'Yoga Mat',                      'slug': 'yoga-mat',                      'description': 'Non-slip premium yoga mat, 6mm thick.',                        'price': 24.99,  'stock': 75, 'cat': 'sports',       'is_featured': True},
+        {'name': 'Strategy Board Game',           'slug': 'strategy-board-game',           'description': 'Award-winning strategy board game for 2-4 players.',           'price': 34.99,  'stock': 40, 'cat': 'toys-games',   'is_featured': True},
     ]
     for p in products_data:
         cat_slug = p.pop('cat')
