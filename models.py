@@ -28,6 +28,8 @@ class Category(db.Model):
     slug = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text)
     image_url = db.Column(db.String(200))
+    parent_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
+    children = db.relationship('Category', backref=db.backref('parent', remote_side='Category.id'), lazy=True)
     products = db.relationship('Product', backref='category', lazy=True)
 
 class Product(db.Model):

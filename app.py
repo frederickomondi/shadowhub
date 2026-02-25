@@ -129,41 +129,88 @@ def create_sample_data():
     admin.set_password('admin123')
     db.session.add(admin)
 
-    categories_data = [
-        {'name': 'Electronics', 'slug': 'electronics', 'description': 'Latest electronic gadgets and devices', 'image_url': 'https://via.placeholder.com/300x200/1a1a2e/6c63ff?text=Electronics'},
-        {'name': 'Software', 'slug': 'software', 'description': 'Premium software licenses and tools', 'image_url': 'https://via.placeholder.com/300x200/1a1a2e/e94560?text=Software'},
-        {'name': 'Digital Goods', 'slug': 'digital-goods', 'description': 'Digital products and downloads', 'image_url': 'https://via.placeholder.com/300x200/1a1a2e/00b4d8?text=Digital'},
-        {'name': 'Services', 'slug': 'services', 'description': 'Professional services and consulting', 'image_url': 'https://via.placeholder.com/300x200/1a1a2e/06d6a0?text=Services'},
+    # ── Top-level categories ──
+    top_level = [
+        {'name': 'Clone Cards',        'slug': 'clone-cards',        'description': 'Cloned credit and debit cards'},
+        {'name': 'Counterfeit',        'slug': 'counterfeit',        'description': 'Counterfeit bills and currency'},
+        {'name': 'Documents',          'slug': 'documents',          'description': 'Fake and real documents'},
+        {'name': 'Drugs for sale',     'slug': 'drugs-for-sale',     'description': 'All types of drugs available'},
+        {'name': 'Guns for sale',      'slug': 'guns-for-sale',      'description': 'Firearms and weapons'},
+        {'name': 'Hire Expert Hacker', 'slug': 'hire-expert-hacker', 'description': 'Professional hacking services'},
+        {'name': 'Hit Man',            'slug': 'hit-man',            'description': 'Hitman services'},
+        {'name': 'Other Drugs',        'slug': 'other-drugs',        'description': 'Miscellaneous drugs'},
     ]
-    categories = []
-    for cat_data in categories_data:
-        cat = Category(**cat_data)
+    cat_map = {}
+    for data in top_level:
+        cat = Category(**data)
         db.session.add(cat)
-        categories.append(cat)
+        cat_map[data['slug']] = cat
     db.session.flush()
 
-    products_data = [
-        {'name': 'Premium VPN Service', 'slug': 'premium-vpn-service', 'description': 'Secure and anonymous VPN service with servers in 50+ countries. Protect your privacy online with military-grade encryption.', 'price': 29.99, 'stock': 100, 'category': categories[1], 'image_url': 'https://via.placeholder.com/400x300/1a1a2e/6c63ff?text=VPN', 'is_featured': True},
-        {'name': 'Encrypted Storage 1TB', 'slug': 'encrypted-storage-1tb', 'description': 'Military-grade encrypted cloud storage solution. Keep your data safe and private with end-to-end encryption.', 'price': 79.99, 'stock': 50, 'category': categories[2], 'image_url': 'https://via.placeholder.com/400x300/1a1a2e/e94560?text=Storage', 'is_featured': True},
-        {'name': 'Security Suite Pro', 'slug': 'security-suite-pro', 'description': 'Complete security suite with antivirus, firewall, and privacy tools. Protect all your devices with one subscription.', 'price': 49.99, 'stock': 75, 'category': categories[1], 'image_url': 'https://via.placeholder.com/400x300/1a1a2e/00b4d8?text=Security', 'is_featured': True},
-        {'name': 'Anonymous Email Service', 'slug': 'anonymous-email-service', 'description': 'Private and anonymous email service with zero-knowledge encryption. No logs, no tracking.', 'price': 19.99, 'stock': 200, 'category': categories[3], 'image_url': 'https://via.placeholder.com/400x300/1a1a2e/06d6a0?text=Email', 'is_featured': True},
-        {'name': 'Crypto Hardware Wallet', 'slug': 'crypto-hardware-wallet', 'description': 'Secure hardware wallet for storing cryptocurrencies offline. Support for 1000+ coins.', 'price': 129.99, 'stock': 30, 'category': categories[0], 'image_url': 'https://via.placeholder.com/400x300/1a1a2e/6c63ff?text=Wallet', 'is_featured': False},
-        {'name': 'Password Manager Premium', 'slug': 'password-manager-premium', 'description': 'Secure password manager with zero-knowledge architecture. Never forget a password again.', 'price': 24.99, 'stock': 150, 'category': categories[1], 'image_url': 'https://via.placeholder.com/400x300/1a1a2e/e94560?text=Password', 'is_featured': False},
-        {'name': 'Secure Messaging App', 'slug': 'secure-messaging-app', 'description': 'End-to-end encrypted messaging application for secure communications.', 'price': 14.99, 'stock': 300, 'category': categories[3], 'image_url': 'https://via.placeholder.com/400x300/1a1a2e/00b4d8?text=Messaging', 'is_featured': False},
-        {'name': 'Digital Identity Pack', 'slug': 'digital-identity-pack', 'description': 'Complete digital identity protection package with monitoring and alerts.', 'price': 39.99, 'stock': 80, 'category': categories[2], 'image_url': 'https://via.placeholder.com/400x300/1a1a2e/06d6a0?text=Identity', 'is_featured': False},
+    # ── Subcategories for Drugs for sale ──
+    drugs_subs = [
+        ('Anabolic steroids',       'anabolic-steroids'),
+        ('Anxiety pills',           'anxiety-pills'),
+        ('Cannabinoids',            'cannabinoids'),
+        ('Cannabis',                'cannabis'),
+        ('Cocaine',                 'cocaine'),
+        ('Nembutal pentobarbital',  'nembutal-pentobarbital'),
+        ('Opioids',                 'opioids'),
+        ('Pain Killer',             'pain-killer'),
+        ('Poisons',                 'poisons'),
     ]
-    for prod_data in products_data:
-        cat = prod_data.pop('category')
-        prod = Product(**prod_data, category_id=cat.id)
+    for name, slug in drugs_subs:
+        sub = Category(name=name, slug=slug,
+                       description=f'{name} products',
+                       parent_id=cat_map['drugs-for-sale'].id)
+        db.session.add(sub)
+        cat_map[slug] = sub
+
+    # ── Subcategories for Guns for sale ──
+    guns_subs = [
+        ('Ammunitions', 'ammunitions'),
+        ('Hand guns',   'hand-guns'),
+        ('Rifles',      'rifles'),
+    ]
+    for name, slug in guns_subs:
+        sub = Category(name=name, slug=slug,
+                       description=f'{name} for sale',
+                       parent_id=cat_map['guns-for-sale'].id)
+        db.session.add(sub)
+        cat_map[slug] = sub
+    db.session.flush()
+
+    # ── Sample products spread across categories ──
+    products_data = [
+        {'name': 'Clone Visa Card',        'slug': 'clone-visa-card',        'description': 'Cloned Visa card with high balance, ready to use.', 'price': 299.99, 'stock': 88,  'cat': 'clone-cards',        'is_featured': True},
+        {'name': 'US Dollar Bills Bundle', 'slug': 'us-dollar-bills-bundle', 'description': 'High-quality counterfeit USD bills, undetectable.', 'price': 199.99, 'stock': 99,  'cat': 'counterfeit',        'is_featured': True},
+        {'name': 'Fake Passport',          'slug': 'fake-passport',          'description': 'Authentic-looking fake passport, any country.', 'price': 899.99, 'stock': 25,  'cat': 'documents',          'is_featured': True},
+        {'name': 'Anabolic Steroid Kit',   'slug': 'anabolic-steroid-kit',   'description': 'Complete anabolic steroid cycle kit.', 'price': 149.99, 'stock': 66,  'cat': 'anabolic-steroids',  'is_featured': True},
+        {'name': 'OG Kush (7g)',           'slug': 'og-kush-7g',             'description': 'Premium OG Kush cannabis, discreet packaging.', 'price': 79.99,  'stock': 77,  'cat': 'cannabis',           'is_featured': True},
+        {'name': 'Pure Cocaine (1g)',      'slug': 'pure-cocaine-1g',        'description': '99% pure cocaine, lab tested.', 'price': 129.99, 'stock': 77,  'cat': 'cocaine',            'is_featured': True},
+        {'name': 'Glock 19 Gen 5',        'slug': 'glock-19-gen-5',         'description': 'Glock 19 Gen 5 handgun, brand new, untraceable.', 'price': 599.99, 'stock': 21,  'cat': 'hand-guns',          'is_featured': True},
+        {'name': 'Hacking Service',        'slug': 'hacking-service',        'description': 'Professional ethical and grey-hat hacking services.', 'price': 499.99, 'stock': 1,   'cat': 'hire-expert-hacker', 'is_featured': True},
+    ]
+    for p in products_data:
+        cat_slug = p.pop('cat')
+        prod = Product(
+            name=p['name'], slug=p['slug'], description=p['description'],
+            price=p['price'], stock=p['stock'], is_featured=p['is_featured'],
+            is_active=True,
+            category_id=cat_map[cat_slug].id,
+            image_url=f"https://via.placeholder.com/400x300/1a1a2e/6c63ff?text={p['name'].replace(' ', '+')}"
+        )
         db.session.add(prod)
     db.session.commit()
+
 
 # ---- Routes ----
 
 @app.route('/')
 def index():
     featured = Product.query.filter_by(is_featured=True, is_active=True).limit(8).all()
-    categories = Category.query.all()
+    # Only top-level categories on the homepage
+    categories = Category.query.filter_by(parent_id=None).all()
     return render_template('index.html', featured_products=featured, categories=categories)
 
 @app.route('/shop')
@@ -174,16 +221,21 @@ def shop():
     max_price = request.args.get('max_price', 10000, type=float)
     search = request.args.get('search', '')
     query = Product.query.filter_by(is_active=True)
+    selected_cat = None
     if category_slug:
-        cat = Category.query.filter_by(slug=category_slug).first()
-        if cat:
-            query = query.filter_by(category_id=cat.id)
+        selected_cat = Category.query.filter_by(slug=category_slug).first()
+        if selected_cat:
+            # Include products from this category AND all its subcategories
+            child_ids = [c.id for c in selected_cat.children]
+            cat_ids = [selected_cat.id] + child_ids
+            query = query.filter(Product.category_id.in_(cat_ids))
     if search:
         query = query.filter(Product.name.ilike(f'%{search}%'))
     query = query.filter(Product.price >= min_price, Product.price <= max_price)
     products = query.paginate(page=page, per_page=9)
-    categories = Category.query.all()
-    return render_template('shop.html', products=products, categories=categories,
+    # Only top-level categories for the sidebar; children come via .children
+    top_categories = Category.query.filter_by(parent_id=None).all()
+    return render_template('shop.html', products=products, categories=top_categories,
                            selected_category=category_slug, min_price=min_price,
                            max_price=max_price, search=search)
 
@@ -448,7 +500,7 @@ def admin_products():
 @login_required
 @admin_required
 def admin_add_product():
-    categories = Category.query.all()
+    top_categories = Category.query.filter_by(parent_id=None).order_by(Category.name).all()
     if request.method == 'POST':
         name = request.form.get('name')
         slug = request.form.get('slug') or name.lower().replace(' ', '-')
@@ -466,14 +518,14 @@ def admin_add_product():
         db.session.commit()
         flash('Product added successfully!', 'success')
         return redirect(url_for('admin_products'))
-    return render_template('admin/add_product.html', categories=categories, product=None)
+    return render_template('admin/add_product.html', top_categories=top_categories, product=None)
 
 @app.route('/admin/products/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def admin_edit_product(id):
     product = Product.query.get_or_404(id)
-    categories = Category.query.all()
+    top_categories = Category.query.filter_by(parent_id=None).order_by(Category.name).all()
     if request.method == 'POST':
         product.name = request.form.get('name')
         product.slug = request.form.get('slug') or product.name.lower().replace(' ', '-')
@@ -487,7 +539,7 @@ def admin_edit_product(id):
         db.session.commit()
         flash('Product updated!', 'success')
         return redirect(url_for('admin_products'))
-    return render_template('admin/add_product.html', product=product, categories=categories)
+    return render_template('admin/add_product.html', product=product, top_categories=top_categories)
 
 @app.route('/admin/products/delete/<int:id>', methods=['POST'])
 @login_required
@@ -542,17 +594,18 @@ def admin_update_order_status(order_number):
 @login_required
 @admin_required
 def admin_categories():
-    categories = Category.query.all()
-    return render_template('admin/categories.html', categories=categories)
+    top_categories = Category.query.filter_by(parent_id=None).order_by(Category.name).all()
+    return render_template('admin/categories.html', top_categories=top_categories)
 
 @app.route('/admin/categories/add', methods=['POST'])
 @login_required
 @admin_required
 def admin_add_category():
     name = request.form.get('name')
-    slug = request.form.get('slug') or name.lower().replace(' ', '-')
+    slug = request.form.get('slug') or name.lower().replace(' ', '-').replace(' ', '-')
     description = request.form.get('description')
-    cat = Category(name=name, slug=slug, description=description)
+    parent_id = request.form.get('parent_id') or None
+    cat = Category(name=name, slug=slug, description=description, parent_id=parent_id)
     db.session.add(cat)
     db.session.commit()
     flash('Category added!', 'success')

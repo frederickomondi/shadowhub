@@ -56,12 +56,33 @@
           </div>
           <div class="mb-3">
             <label class="form-label text-muted small">Category</label>
-            <select name="category_id" class="form-select dark-input">
-              <option value="">No Category</option>
-              {% for cat in categories %}
-              <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+            <select name="category_id" class="form-select dark-input" id="category-select">
+              <option value="">— No Category —</option>
+              {% for parent in top_categories %}
+                {% if parent.children %}
+                  {# Parent with subcategories: show as optgroup #}
+                  <optgroup label="📁 {{ parent.name }}">
+                    <option value="{{ parent.id }}"
+                      {% if product and product.category_id == parent.id %}selected{% endif %}>
+                      {{ parent.name }} (general)
+                    </option>
+                    {% for child in parent.children | sort(attribute='name') %}
+                    <option value="{{ child.id }}"
+                      {% if product and product.category_id == child.id %}selected{% endif %}>
+                      &nbsp;&nbsp;&nbsp;↳ {{ child.name }}
+                    </option>
+                    {% endfor %}
+                  </optgroup>
+                {% else %}
+                  {# Standalone parent (no children) #}
+                  <option value="{{ parent.id }}"
+                    {% if product and product.category_id == parent.id %}selected{% endif %}>
+                    {{ parent.name }}
+                  </option>
+                {% endif %}
               {% endfor %}
             </select>
+            <small class="text-muted">Select the most specific category that fits</small>
           </div>
           <div class="mb-3">
             <div class="form-check form-switch">
