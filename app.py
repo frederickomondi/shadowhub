@@ -247,8 +247,35 @@ def shop_category(category_slug):
 @app.route('/product/<slug>')
 def product_detail(slug):
     product = Product.query.filter_by(slug=slug, is_active=True).first_or_404()
+    # Increment view count
+    product.view_count = (product.view_count or 0) + 1
+    db.session.commit()
     related = Product.query.filter_by(category_id=product.category_id, is_active=True).filter(Product.id != product.id).limit(4).all()
     return render_template('product.html', product=product, related_products=related)
+
+
+@app.route('/api/trending')
+def api_trending():
+    """Return top 8 trending products (most viewed, falling back to featured) as JSON."""
+    products = Product.query.filter_by(is_active=True)\
+        .order_by(Product.view_count.desc(), Product.is_featured.desc())\
+        .limit(8).all()
+    currency = get_currency()
+    info = CURRENCIES.get(currency, CURRENCIES['USD'])
+    data = []
+    for p in products:
+        converted = p.price * info['rate']
+        data.append({
+            'id':        p.id,
+            'name':      p.name,
+            'slug':      p.slug,
+            'price':     f"{info['symbol']}{converted:,.2f}",
+            'image_url': p.image_url or '',
+            'url':       url_for('product_detail', slug=p.slug),
+            'views':     p.view_count or 0,
+            'featured':  p.is_featured,
+        })
+    return jsonify(data)
 
 @app.route('/cart/add', methods=['POST'])
 def cart_add():

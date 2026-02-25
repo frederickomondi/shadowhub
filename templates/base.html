@@ -329,5 +329,109 @@
   }
 })();
 </script>
+
+{# ── Trending product popup — rotates every 2 minutes ── #}
+<div id="trending-popup" class="trending-popup" role="status" aria-live="polite" style="display:none;">
+  <button class="trending-close" id="trending-close" aria-label="Dismiss">&times;</button>
+  <div class="trending-header">
+    <span class="trending-fire">🔥</span>
+    <span class="trending-label" id="trending-label">Trending Now</span>
+  </div>
+  <a href="#" id="trending-link" class="trending-body text-decoration-none">
+    <img id="trending-img" src="" alt="" class="trending-img">
+    <div class="trending-info">
+      <div class="trending-name" id="trending-name"></div>
+      <div class="trending-price" id="trending-price"></div>
+      <div class="trending-cta">View Product →</div>
+    </div>
+  </a>
+</div>
+
+<script>
+(function () {
+  var products   = [];
+  var idx        = 0;
+  var popup      = document.getElementById('trending-popup');
+  var closeBtn   = document.getElementById('trending-close');
+  var nameEl     = document.getElementById('trending-name');
+  var priceEl    = document.getElementById('trending-price');
+  var imgEl      = document.getElementById('trending-img');
+  var linkEl     = document.getElementById('trending-link');
+  var labelEl    = document.getElementById('trending-label');
+  var INTERVAL   = 2 * 60 * 1000;   // 2 minutes
+  var SHOW_DUR   = 8000;             // visible for 8 s then auto-hides
+  var hideTimer  = null;
+  var cycleTimer = null;
+  var dismissed  = false;
+
+  function labels(p) {
+    if (p.views > 50)   return '🔥 Trending Now';
+    if (p.featured)     return '⭐ Featured Product';
+    return '👀 Most Viewed';
+  }
+
+  function showProduct(p) {
+    if (dismissed || !popup) return;
+    nameEl.textContent  = p.name;
+    priceEl.textContent = p.price;
+    linkEl.href         = p.url;
+    labelEl.textContent = labels(p);
+    if (p.image_url) {
+      imgEl.src           = p.image_url;
+      imgEl.style.display = 'block';
+    } else {
+      imgEl.style.display = 'none';
+    }
+    popup.classList.remove('trending-hide');
+    popup.style.display = 'flex';
+    // auto-hide after SHOW_DUR
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(hidePopup, SHOW_DUR);
+  }
+
+  function hidePopup() {
+    if (!popup) return;
+    popup.classList.add('trending-hide');
+    setTimeout(function () {
+      popup.style.display = 'none';
+      popup.classList.remove('trending-hide');
+    }, 400);
+  }
+
+  function showNext() {
+    if (dismissed || products.length === 0) return;
+    showProduct(products[idx % products.length]);
+    idx++;
+  }
+
+  function startCycle() {
+    // First popup after 5 s (let page settle), then every 2 min
+    setTimeout(function () {
+      showNext();
+      cycleTimer = setInterval(showNext, INTERVAL);
+    }, 5000);
+  }
+
+  closeBtn && closeBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    dismissed = true;
+    clearTimeout(hideTimer);
+    clearInterval(cycleTimer);
+    hidePopup();
+  });
+
+  // Fetch trending products from API
+  fetch('/api/trending')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data && data.length) {
+        // Shuffle so different visitors see different first product
+        products = data.sort(function () { return Math.random() - 0.5; });
+        startCycle();
+      }
+    })
+    .catch(function () { /* silently fail if API unavailable */ });
+})();
+</script>
 </body>
 </html>

@@ -490,3 +490,82 @@ body {
   font-size: .9rem;
 }
 .admin-escrow-card { border: 1px solid rgba(108,99,255,0.3) !important; }
+
+/* ===== TRENDING PRODUCT POPUP ===== */
+.trending-popup {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  width: 300px;
+  background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+  border: 1px solid rgba(108,99,255,0.45);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(108,99,255,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: trending-slide-in 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.trending-popup.trending-hide {
+  animation: trending-slide-out 0.35s ease-in forwards;
+}
+@keyframes trending-slide-in {
+  from { opacity:0; transform: translateY(30px) scale(0.92); }
+  to   { opacity:1; transform: translateY(0)    scale(1);    }
+}
+@keyframes trending-slide-out {
+  to   { opacity:0; transform: translateY(20px) scale(0.94); }
+}
+
+.trending-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px 7px;
+  background: rgba(108,99,255,0.18);
+  border-bottom: 1px solid rgba(108,99,255,0.2);
+}
+.trending-fire  { font-size: 1rem; }
+.trending-label { font-size: 0.75rem; font-weight: 700; color: #a89fff; text-transform: uppercase; letter-spacing: .06em; }
+
+.trending-close {
+  position: absolute;
+  top: 7px; right: 10px;
+  background: none;
+  border: none;
+  color: #6c6c88;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color .2s;
+  z-index: 2;
+}
+.trending-close:hover { color: #e94560; }
+
+.trending-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  color: inherit;
+  transition: background .2s;
+}
+.trending-body:hover { background: rgba(108,99,255,0.08); }
+
+.trending-img {
+  width: 62px;
+  height: 62px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(108,99,255,0.25);
+  flex-shrink: 0;
+}
+.trending-info  { flex: 1; min-width: 0; }
+.trending-name  { font-size: 0.82rem; font-weight: 600; color: #e8e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.trending-price { font-size: 0.88rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.trending-cta   { font-size: 0.7rem; color: #6c7aff; letter-spacing:.03em; }
+
+@media (max-width: 480px) {
+  .trending-popup { width: calc(100vw - 32px); right: 16px; bottom: 16px; }
+}

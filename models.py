@@ -44,6 +44,7 @@ class Product(db.Model):
     image_url = db.Column(db.String(200))
     is_featured = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
+    view_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     order_items = db.relationship('OrderItem', backref='product', lazy=True)
     cart_items = db.relationship('CartItem', backref='product', lazy=True)
