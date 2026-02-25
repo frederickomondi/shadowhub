@@ -165,6 +165,57 @@
               </a>
             </div>
 
+            {# ── PGP Key Card ── #}
+            <div class="card dark-card info-card contact-pgp-card p-4">
+              <div class="info-icon mx-auto mb-3"><i class="fas fa-key fa-lg text-accent"></i></div>
+              <h6 class="text-light mb-1 text-center">PGP / GPG Encryption</h6>
+              <p class="text-muted small text-center mb-3">
+                Encrypt sensitive messages to us using our PGP public key for maximum privacy.
+              </p>
+
+              {% if pgp_key_set %}
+              {# Fingerprint #}
+              <div class="pgp-fingerprint-box mb-3">
+                <div class="text-muted small mb-1"><i class="fas fa-fingerprint me-1"></i>Key Fingerprint</div>
+                <code class="pgp-fingerprint-code" id="pgpFingerprint">{{ pgp_fingerprint }}</code>
+                <button class="btn btn-sm btn-outline-accent mt-2 w-100"
+                        onclick="copyText('pgpFingerprint','Fingerprint copied!')">
+                  <i class="fas fa-copy me-1"></i>Copy Fingerprint
+                </button>
+              </div>
+
+              {# Full key #}
+              <div class="pgp-key-box mb-2">
+                <div class="text-muted small mb-1"><i class="fas fa-shield-alt me-1"></i>Public Key</div>
+                <textarea class="pgp-key-textarea" id="pgpPublicKey" readonly rows="6">{{ pgp_key }}</textarea>
+                <button class="btn btn-accent w-100 mt-2"
+                        onclick="copyText('pgpPublicKey','PGP key copied!')">
+                  <i class="fas fa-copy me-1"></i>Copy Public Key
+                </button>
+              </div>
+
+              <div class="pgp-howto-box mt-3">
+                <p class="text-muted small mb-1 fw-semibold"><i class="fas fa-question-circle me-1"></i>How to use:</p>
+                <ol class="text-muted small ps-3 mb-0">
+                  <li>Copy the public key above</li>
+                  <li>Import it into Kleopatra, GPG4Win, or GPG Suite</li>
+                  <li>Write your message, then encrypt to <code class="text-accent">{{ contact_email }}</code></li>
+                  <li>Paste the encrypted block into the message field on the left</li>
+                </ol>
+              </div>
+
+              {% else %}
+              {# Placeholder — admin hasn't added their key yet #}
+              <div class="pgp-pending-box text-center">
+                <i class="fas fa-hourglass-half fa-2x text-muted mb-2"></i>
+                <p class="text-muted small mb-2">Our PGP key will be published here shortly.</p>
+                <p class="text-muted small">In the meantime, contact us at:<br>
+                  <a href="mailto:{{ contact_email }}" class="text-accent text-decoration-none">{{ contact_email }}</a>
+                </p>
+              </div>
+              {% endif %}
+            </div>
+
           </div>
         </div>
 
@@ -227,11 +278,66 @@
   transition: opacity .2s;
 }
 .contact-direct-email-link:hover { opacity: .75; color: var(--accent); }
+
+/* PGP key card */
+.contact-pgp-card { border: 1px solid rgba(108,99,255,0.4); }
+.pgp-fingerprint-box {
+  background: rgba(108,99,255,0.07);
+  border: 1px solid rgba(108,99,255,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.pgp-fingerprint-code {
+  font-size: 0.72rem;
+  color: #a89fff;
+  word-break: break-all;
+  display: block;
+}
+.pgp-key-box {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(108,99,255,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.pgp-key-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #8888aa;
+  font-size: 0.68rem;
+  font-family: monospace;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+}
+.pgp-howto-box {
+  background: rgba(108,99,255,0.05);
+  border-left: 3px solid rgba(108,99,255,0.4);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 12px;
+}
+.pgp-pending-box {
+  background: rgba(108,99,255,0.05);
+  border: 1px dashed rgba(108,99,255,0.25);
+  border-radius: 8px;
+  padding: 16px;
+}
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+function copyText(elId, msg) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var text = el.tagName === 'TEXTAREA' ? el.value : el.textContent;
+  navigator.clipboard.writeText(text.trim())
+    .then(function() { window.ShadowHub && window.ShadowHub.showToast(msg || 'Copied!'); })
+    .catch(function() {
+      el.select && el.select();
+      try { document.execCommand('copy'); window.ShadowHub && window.ShadowHub.showToast(msg || 'Copied!'); } catch(e) {}
+    });
+}
 (function () {
   var form = document.getElementById('contactForm');
   if (!form) return;

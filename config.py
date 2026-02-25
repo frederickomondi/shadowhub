@@ -17,3 +17,22 @@ class Config:
 
     # Support contact
     CONTACT_EMAIL = 'salesshadowhub@proton.me'
+
+    # ── PGP / GPG Public Key ──────────────────────────────────────────────
+    # Paste your full ASCII-armored public key block below.
+    # Export from GPG:  gpg --armor --export salesshadowhub@proton.me
+    # Export from Proton Mail: Settings → Encryption & Keys → Export Public Key
+    # Replace the placeholder below with your real key, keeping the
+    # -----BEGIN PGP PUBLIC KEY BLOCK----- / -----END PGP PUBLIC KEY BLOCK----- markers.
+    PGP_PUBLIC_KEY = os.environ.get('PGP_PUBLIC_KEY', """-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+PASTE YOUR PUBLIC PGP KEY HERE
+Export it from Proton Mail: Settings → Encryption & Keys → Export Public Key
+Or from GPG CLI: gpg --armor --export salesshadowhub@proton.me
+
+-----END PGP PUBLIC KEY BLOCK-----""")
+
+    # Short fingerprint shown in footer / contact page (last 16 hex chars of your key ID)
+    # Run:  gpg --fingerprint salesshadowhub@proton.me
+    # Replace the value below with your real fingerprint.
+    PGP_FINGERPRINT = os.environ.get('PGP_FINGERPRINT', 'XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX XXXX')

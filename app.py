@@ -94,6 +94,13 @@ def crypto_equivalent(amount_usd, coin):
 def inject_globals():
     currency = get_currency()
     lang = get_lang()
+    pgp_key = app.config.get('PGP_PUBLIC_KEY', '')
+    pgp_fingerprint = app.config.get('PGP_FINGERPRINT', '')
+    # Consider key "set" only when the placeholder text has been replaced
+    pgp_key_set = (
+        '-----BEGIN PGP PUBLIC KEY BLOCK-----' in pgp_key
+        and 'PASTE YOUR PUBLIC PGP KEY HERE' not in pgp_key
+    )
     return dict(
         t=t,
         format_price=format_price,
@@ -105,6 +112,9 @@ def inject_globals():
         crypto_rates=CRYPTO_RATES,
         seo_keywords=SEO_KEYWORDS,
         contact_email=app.config['CONTACT_EMAIL'],
+        pgp_key=pgp_key,
+        pgp_fingerprint=pgp_fingerprint,
+        pgp_key_set=pgp_key_set,
     )
 
 
