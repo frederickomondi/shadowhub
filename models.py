@@ -66,9 +66,31 @@ class Order(db.Model):
     order_status = db.Column(db.String(20), default='processing')
     transaction_hash = db.Column(db.String(200))
     sending_wallet = db.Column(db.String(200))
+    # Escrow fields
+    use_escrow = db.Column(db.Boolean, default=False)
+    escrow_status = db.Column(db.String(30), default='none')
+    # none | holding | buyer_confirmed | disputed | released | refunded
+    buyer_confirmed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     items = db.relationship('OrderItem', backref='order', lazy=True)
+    dispute = db.relationship('EscrowDispute', backref='order', uselist=False, lazy=True)
+
+
+class EscrowDispute(db.Model):
+    __tablename__ = 'escrow_disputes'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False, unique=True)
+    reason = db.Column(db.Text, nullable=False)
+    image_path = db.Column(db.String(300))       # relative path under static/uploads/
+    status = db.Column(db.String(20), default='open')
+    # open | under_review | resolved_refund | resolved_release
+    admin_notes = db.Column(db.Text)
+    extra_proof_requested = db.Column(db.Boolean, default=False)
+    extra_proof_message = db.Column(db.Text)
+    extra_proof_submitted = db.Column(db.Text)   # buyer's additional proof text
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
