@@ -122,13 +122,13 @@
                 <div class="text-light small">{{ item.product.name }}</div>
                 <div class="text-muted small">Qty: {{ item.quantity }}</div>
               </div>
-              <span class="text-accent">${{ "%.2f"|format(item.subtotal) }}</span>
+              <span class="text-accent">{{ format_price(item.subtotal) }}</span>
             </div>
             {% endfor %}
             <hr class="border-secondary">
             <div class="d-flex justify-content-between mb-1">
               <span class="text-muted">Subtotal</span>
-              <span class="text-light">${{ "%.2f"|format(total) }}</span>
+              <span class="text-light">{{ format_price(total) }}</span>
             </div>
             <div class="d-flex justify-content-between mb-3">
               <span class="text-muted">Shipping</span>
@@ -137,7 +137,7 @@
             <hr class="border-secondary">
             <div class="d-flex justify-content-between mb-4">
               <span class="text-light fw-bold fs-5">Total</span>
-              <span class="text-accent fw-bold fs-4">${{ "%.2f"|format(total) }}</span>
+              <span class="text-accent fw-bold fs-4">{{ format_price(total) }}</span>
             </div>
             <button type="submit" class="btn btn-accent w-100 btn-lg">
               <i class="fas fa-lock me-2"></i>Place Order

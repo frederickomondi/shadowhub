@@ -1,15 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_lang }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ShadowHub Marketplace{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-    {% block extra_css %}{% endblock %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  {# ── SEO Meta Tags ── #}
+  <title>{% block title %}ShadowHub – Trusted Anonymous Marketplace | Crypto Payments{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}ShadowHub is the most trusted anonymous marketplace. Shop securely with Bitcoin, Monero, USDT and TRX. Discreet packaging, express delivery, 110% guaranteed.{% endblock %}">
+  <meta name="keywords" content="{{ seo_keywords }}">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="ShadowHub Marketplace">
+  <meta name="theme-color" content="#6c63ff">
+  <link rel="canonical" href="{{ request.url }}">
+
+  {# Open Graph #}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ShadowHub Marketplace">
+  <meta property="og:title" content="{% block og_title %}ShadowHub – Trusted Anonymous Marketplace{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}The most trusted anonymous marketplace. Discreet packaging, crypto payments, express worldwide delivery guaranteed.{% endblock %}">
+  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:image" content="{{ url_for('static', filename='img/og-image.png', _external=True) }}">
+  <meta property="og:locale" content="{{ current_lang }}_{{ current_lang|upper }}">
+
+  {# Twitter Card #}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ShadowHub – Trusted Anonymous Marketplace">
+  <meta name="twitter:description" content="Shop securely with Bitcoin, Monero, USDT and TRX. Express delivery, 110% guaranteed.">
+
+  {# JSON-LD structured data #}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "OnlineStore",
+    "name": "ShadowHub Marketplace",
+    "description": "The most trusted anonymous marketplace. Shop securely with cryptocurrency.",
+    "url": "{{ request.host_url }}",
+    "currenciesAccepted": "BTC, XMR, USDT, TRX",
+    "paymentAccepted": "Cryptocurrency",
+    "priceRange": "$$"
+  }
+  </script>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
+
+{# ════════════════════════════════════════════
+   WELCOME MODAL  (shown once per browser session)
+   ════════════════════════════════════════════ #}
+<div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content welcome-modal-content">
+      <div class="modal-body p-0">
+        <div class="welcome-modal-header text-center py-4 px-4">
+          <div class="welcome-icon mb-3">
+            <i class="fas fa-spider fa-3x text-accent"></i>
+          </div>
+          <h2 class="welcome-title" id="welcomeModalLabel">{{ t('welcome_title') }}</h2>
+          <div class="welcome-divider mx-auto my-3"></div>
+        </div>
+        <div class="welcome-modal-body px-5 pb-2">
+          <p class="welcome-text text-center">
+            {{ t('welcome_body') }}
+          </p>
+          <div class="welcome-guarantee text-center my-3">
+            <i class="fas fa-shield-alt text-accent me-2"></i>
+            <strong class="text-accent">{{ t('welcome_guarantee') }}</strong>
+          </div>
+          <p class="welcome-features text-center text-muted">
+            {{ t('welcome_features') }}
+          </p>
+
+          {# Trust badges inside modal #}
+          <div class="row g-2 text-center my-3">
+            <div class="col-6 col-md-3">
+              <div class="welcome-badge p-2">
+                <i class="fas fa-box-open text-accent mb-1 d-block"></i>
+                <small>Discreet Packaging</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="welcome-badge p-2">
+                <i class="fas fa-shipping-fast text-accent mb-1 d-block"></i>
+                <small>Express Delivery</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="welcome-badge p-2">
+                <i class="fas fa-user-secret text-accent mb-1 d-block"></i>
+                <small>Buyer Privacy</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="welcome-badge p-2">
+                <i class="fas fa-headset text-accent mb-1 d-block"></i>
+                <small>24/7 Support</small>
+              </div>
+            </div>
+          </div>
+
+          {# Accepted crypto #}
+          <div class="welcome-crypto d-flex justify-content-center gap-3 flex-wrap my-3">
+            <span class="crypto-pill"><i class="fab fa-bitcoin text-warning me-1"></i>BTC</span>
+            <span class="crypto-pill"><i class="fas fa-coins text-info me-1"></i>XMR</span>
+            <span class="crypto-pill"><i class="fas fa-dollar-sign text-success me-1"></i>USDT</span>
+            <span class="crypto-pill"><i class="fas fa-bolt text-primary me-1"></i>TRX</span>
+          </div>
+        </div>
+        <div class="welcome-modal-footer text-center py-4 px-4">
+          <button type="button" class="btn btn-accent btn-lg px-5 welcome-enter-btn" id="welcomeEnterBtn">
+            <i class="fas fa-store me-2"></i>{{ t('welcome_btn') }}
+          </button>
+          <p class="text-muted small mt-2 mb-0">
+            <i class="fas fa-lock me-1"></i>100% Anonymous &bull; No logs &bull; Encrypted
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ════════════════════════════════════════════
+   NAVBAR
+   ════════════════════════════════════════════ #}
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-navbar">
   <div class="container">
     <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -17,26 +134,59 @@
       <span class="brand-name">ShadowHub</span>
       <small class="brand-subtitle d-block">Best Market Place</small>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav ms-auto align-items-center">
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('shop') }}"><i class="fas fa-store me-1"></i>Shop</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('how_to_order') }}"><i class="fas fa-question-circle me-1"></i>How to Order</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('order_tracking') }}"><i class="fas fa-search me-1"></i>Track Order</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}"><i class="fas fa-info-circle me-1"></i>About</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('shop') }}"><i class="fas fa-store me-1"></i>{{ t('nav_shop') }}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('how_to_order') }}"><i class="fas fa-question-circle me-1"></i>{{ t('nav_how_to_order') }}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('order_tracking') }}"><i class="fas fa-search me-1"></i>{{ t('nav_track_order') }}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}"><i class="fas fa-info-circle me-1"></i>{{ t('nav_about') }}</a></li>
+
+        {# ── Language Switcher ── #}
+        <li class="nav-item dropdown ms-1">
+          <a class="nav-link dropdown-toggle lang-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ t('language_label') }}">
+            {{ supported_languages[current_lang][1] }} {{ current_lang|upper }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end switcher-dropdown">
+            {% for code, (name, flag) in supported_languages.items() %}
+            <li>
+              <a class="dropdown-item {% if code == current_lang %}active{% endif %}" href="{{ url_for('set_language', lang=code) }}">
+                {{ flag }} {{ name }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </li>
+
+        {# ── Currency Switcher ── #}
+        <li class="nav-item dropdown ms-1">
+          <a class="nav-link dropdown-toggle curr-btn" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ t('currency_label') }}">
+            {{ supported_currencies[current_currency]['symbol'] }} {{ current_currency }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end switcher-dropdown">
+            {% for code, info in supported_currencies.items() %}
+            <li>
+              <a class="dropdown-item {% if code == current_currency %}active{% endif %}" href="{{ url_for('set_currency', currency=code) }}">
+                {{ info['symbol'] }} {{ code }} – {{ info['name'] }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </li>
+
         {% if current_user.is_authenticated %}
           {% if current_user.is_admin %}
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_index') }}"><i class="fas fa-cog me-1"></i>Admin</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_index') }}"><i class="fas fa-cog me-1"></i>{{ t('nav_admin') }}</a></li>
           {% endif %}
           <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-user me-1"></i>{{ current_user.username }}</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-1"></i>Logout</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-1"></i>{{ t('nav_logout') }}</a></li>
         {% else %}
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt me-1"></i>{{ t('nav_login') }}</a></li>
         {% endif %}
         <li class="nav-item ms-2">
-          <a class="btn btn-accent position-relative" href="{{ url_for('cart') }}">
+          <a class="btn btn-accent position-relative" href="{{ url_for('cart') }}" title="{{ t('nav_cart') }}">
             <i class="fas fa-shopping-cart"></i>
             {% set count = get_cart_count() %}
             {% if count > 0 %}
@@ -49,6 +199,7 @@
   </div>
 </nav>
 
+{# Flash messages #}
 <div class="container mt-3">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -64,12 +215,15 @@
 
 {% block content %}{% endblock %}
 
+{# ════════════════════════════════════════════
+   FOOTER
+   ════════════════════════════════════════════ #}
 <footer class="footer mt-5 py-5">
   <div class="container">
     <div class="row">
       <div class="col-lg-4 mb-4">
         <h5 class="text-accent mb-3"><i class="fas fa-spider me-2"></i>ShadowHub</h5>
-        <p class="text-muted">The most trusted anonymous marketplace. Shop securely with cryptocurrency and protect your privacy.</p>
+        <p class="text-muted">{{ t('footer_tagline') }}</p>
         <div class="crypto-icons mt-3">
           <span class="crypto-icon me-2" title="Bitcoin"><i class="fab fa-bitcoin"></i></span>
           <span class="crypto-icon me-2" title="Monero">XMR</span>
@@ -78,26 +232,26 @@
         </div>
       </div>
       <div class="col-lg-2 col-md-6 mb-4">
-        <h6 class="text-light mb-3">Quick Links</h6>
+        <h6 class="text-light mb-3">{{ t('footer_quick_links') }}</h6>
         <ul class="list-unstyled footer-links">
-          <li><a href="{{ url_for('index') }}">Home</a></li>
-          <li><a href="{{ url_for('shop') }}">Shop</a></li>
-          <li><a href="{{ url_for('how_to_order') }}">How to Order</a></li>
-          <li><a href="{{ url_for('order_tracking') }}">Track Order</a></li>
-          <li><a href="{{ url_for('faq') }}">FAQ</a></li>
+          <li><a href="{{ url_for('index') }}">{{ t('footer_home') }}</a></li>
+          <li><a href="{{ url_for('shop') }}">{{ t('nav_shop') }}</a></li>
+          <li><a href="{{ url_for('how_to_order') }}">{{ t('nav_how_to_order') }}</a></li>
+          <li><a href="{{ url_for('order_tracking') }}">{{ t('nav_track_order') }}</a></li>
+          <li><a href="{{ url_for('faq') }}">{{ t('footer_faq') }}</a></li>
         </ul>
       </div>
       <div class="col-lg-2 col-md-6 mb-4">
-        <h6 class="text-light mb-3">Legal</h6>
+        <h6 class="text-light mb-3">{{ t('footer_legal') }}</h6>
         <ul class="list-unstyled footer-links">
-          <li><a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></li>
-          <li><a href="{{ url_for('terms') }}">Terms of Service</a></li>
-          <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-          <li><a href="{{ url_for('about') }}">About Us</a></li>
+          <li><a href="{{ url_for('privacy_policy') }}">{{ t('footer_privacy') }}</a></li>
+          <li><a href="{{ url_for('terms') }}">{{ t('footer_terms') }}</a></li>
+          <li><a href="{{ url_for('contact') }}">{{ t('footer_contact') }}</a></li>
+          <li><a href="{{ url_for('about') }}">{{ t('nav_about') }}</a></li>
         </ul>
       </div>
       <div class="col-lg-4 mb-4">
-        <h6 class="text-light mb-3">Accepted Payments</h6>
+        <h6 class="text-light mb-3">{{ t('footer_payments') }}</h6>
         <div class="payment-methods-footer">
           <div class="payment-badge mb-2"><i class="fab fa-bitcoin text-warning me-2"></i>Bitcoin (BTC)</div>
           <div class="payment-badge mb-2"><i class="fas fa-coins text-info me-2"></i>Monero (XMR)</div>
@@ -106,9 +260,49 @@
         </div>
       </div>
     </div>
-    <hr class="border-secondary">
+
+    {# ── SEO Keyword Cloud ── #}
+    <div class="footer-keywords mt-4 pt-4 border-top border-secondary">
+      <h6 class="text-muted small mb-3 text-uppercase letter-spacing-1">
+        <i class="fas fa-tags me-2"></i>{{ t('footer_keywords_title') }}
+      </h6>
+      <div class="keyword-cloud">
+        {% set kw_list = [
+          'amphetamine','apple','bitcoin','bitcoin wallet','black market','blackmarket',
+          'btc wallet','bulk sms','buy bank notes','buy benzodiazepines','buy benzos',
+          'buy bills','buy bitcoin','buy bitcoin wallet','buy btc wallet','buy cannabis',
+          'buy credit card','buy crypto wallet','buy drugs','buy gun','buy guns',
+          'buy hallucinogens','buy hash','buy notes','buy paypal','buy paypal acc',
+          'buy paypal account','buy paypal accounts','buy paypal account with balance',
+          'buy stimulants','buy testosterone','cannabis','carding','carding software',
+          'cf','cocaine','counterfeit bills','counterfeit money','crack','crypto wallet',
+          'darknet market','darknet marketplace','darkweb market','darkweb marketplace',
+          'drugs','drugs buy','earn money','facebook','fake','free bitcoin','free btc',
+          'free money','free movies','free netflix account','gun','guns','hack',
+          'hacked account','hallucinogens','hash','hashish','iphone','ketamine',
+          'loszetasmeth','lsd','make money','market','marketplace','mdma','mdma buy',
+          'miamivice','mobile money transfer','moroccan hash','movie streaming','netflix',
+          'netflix account','netflix premium','opioids','paypal acc','paypal account buy',
+          'paypal accounts','paypal accounts with balance','paypal money transfer',
+          'paypal transfer','phone','porn shop','smartphone','sms','speed',
+          'steal credit card','steroids','steroids buy','stimulants','stimulants buy',
+          'testosterone buy','thc','usd','weed',
+          '9mm','best price','capsule','capsules','chemicals','escrow','euphoria',
+          'fast delivery','feminized','feminized marijuana seeds','legit','libido',
+          'magic','marijuana','mushroom','onion','online','performance','pharmacy',
+          'pistol','pistols','quality','research','research chemicals','secure','seed',
+          'seeds','sexual health','shop','stealth','stimulant','store','tor',
+          'trusted vendor','verified','discreet','anonymous'
+        ] %}
+        {% for kw in kw_list %}
+        <a href="{{ url_for('shop', search=kw) }}" class="keyword-tag" rel="nofollow">{{ kw }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <hr class="border-secondary mt-4">
     <div class="text-center text-muted">
-      <small>&copy; 2024 ShadowHub Marketplace. All rights reserved. | Anonymous &bull; Secure &bull; Trusted</small>
+      <small>{{ t('footer_copyright') }}</small>
     </div>
   </div>
 </footer>
@@ -116,5 +310,19 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block extra_js %}{% endblock %}
+
+{# Welcome modal init – show once per browser session #}
+<script>
+(function() {
+  if (!sessionStorage.getItem('sh_welcomed')) {
+    var modal = new bootstrap.Modal(document.getElementById('welcomeModal'), {backdrop: 'static', keyboard: false});
+    modal.show();
+    document.getElementById('welcomeEnterBtn').addEventListener('click', function() {
+      sessionStorage.setItem('sh_welcomed', '1');
+      modal.hide();
+    });
+  }
+})();
+</script>
 </body>
 </html>

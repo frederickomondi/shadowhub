@@ -95,12 +95,12 @@
                 <span class="text-light">{{ item.product.name }}</span>
                 <small class="text-muted ms-2">x{{ item.quantity }}</small>
               </div>
-              <span class="text-accent">${{ "%.2f"|format(item.price * item.quantity) }}</span>
+              <span class="text-accent">{{ format_price(item.price * item.quantity) }}</span>
             </div>
             {% endfor %}
             <div class="d-flex justify-content-between mt-3 pt-2 border-top border-secondary">
               <span class="text-light fw-bold">Total Paid</span>
-              <span class="text-accent fw-bold">${{ "%.2f"|format(order.total) }}</span>
+              <span class="text-accent fw-bold">{{ format_price(order.total) }}</span>
             </div>
           </div>
 

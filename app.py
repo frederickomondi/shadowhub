@@ -9,6 +9,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request, ses
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, Category, Product, Order, OrderItem, CartItem
 from config import Config
+from translations import TRANSLATIONS, SUPPORTED_LANGUAGES, CURRENCIES, CRYPTO_RATES, SEO_KEYWORDS
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -52,6 +53,74 @@ def get_cart_count():
     return sum(cart.values())
 
 app.jinja_env.globals['get_cart_count'] = get_cart_count
+
+
+# ---- i18n / currency helpers ----
+
+def get_lang():
+    return session.get('lang', 'en')
+
+def get_currency():
+    return session.get('currency', 'USD')
+
+def t(key):
+    """Translate a key using the current session language."""
+    lang = get_lang()
+    lang_map = TRANSLATIONS.get(lang, TRANSLATIONS['en'])
+    return lang_map.get(key, TRANSLATIONS['en'].get(key, key))
+
+def format_price(amount_usd):
+    """Convert a USD price to the session currency and return a formatted string."""
+    currency = get_currency()
+    info = CURRENCIES.get(currency, CURRENCIES['USD'])
+    converted = amount_usd * info['rate']
+    return f"{info['symbol']}{converted:,.2f}"
+
+def crypto_equivalent(amount_usd, coin):
+    """Return how much of `coin` equals `amount_usd`."""
+    rate = CRYPTO_RATES.get(coin, 1.0)
+    amount_coin = amount_usd * rate
+    if coin == 'BTC':
+        return f"{amount_coin:.8f} BTC"
+    elif coin == 'XMR':
+        return f"{amount_coin:.6f} XMR"
+    elif coin == 'USDT':
+        return f"{amount_coin:.2f} USDT"
+    elif coin == 'TRX':
+        return f"{amount_coin:.2f} TRX"
+    return f"{amount_coin} {coin}"
+
+@app.context_processor
+def inject_globals():
+    currency = get_currency()
+    lang = get_lang()
+    return dict(
+        t=t,
+        format_price=format_price,
+        crypto_equivalent=crypto_equivalent,
+        current_lang=lang,
+        current_currency=currency,
+        supported_languages=SUPPORTED_LANGUAGES,
+        supported_currencies=CURRENCIES,
+        crypto_rates=CRYPTO_RATES,
+        seo_keywords=SEO_KEYWORDS,
+    )
+
+
+# ---- Language & Currency switch routes ----
+
+@app.route('/set-language/<lang>')
+def set_language(lang):
+    if lang in SUPPORTED_LANGUAGES:
+        session['lang'] = lang
+    return redirect(request.referrer or url_for('index'))
+
+@app.route('/set-currency/<currency>')
+def set_currency(currency):
+    if currency in CURRENCIES:
+        session['currency'] = currency
+    return redirect(request.referrer or url_for('index'))
+
 
 def create_sample_data():
     if User.query.filter_by(username='admin').first():
@@ -261,8 +330,31 @@ def terms():
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
-        flash('Your message has been sent! We will get back to you soon.', 'success')
-        return redirect(url_for('contact'))
+        name    = request.form.get('name', '').strip()
+        email   = request.form.get('email', '').strip()
+        subject = request.form.get('subject', '').strip()
+        message = request.form.get('message', '').strip()
+
+        # Server-side validation of required fields
+        errors = []
+        if not name:
+            errors.append('Name is required.')
+        if not email or '@' not in email:
+            errors.append('A valid email address is required.')
+        if not subject:
+            errors.append('Subject is required.')
+
+        if errors:
+            form_data = {'name': name, 'email': email,
+                         'subject': subject, 'message': message}
+            return render_template('contact.html', form_data=form_data, errors=errors)
+
+        # Success – in production you would send an email here
+        return render_template('contact.html',
+                               success=True,
+                               submitted_name=name,
+                               submitted_email=email)
+
     return render_template('contact.html')
 
 @app.route('/faq')

@@ -26,16 +26,16 @@
               {% for item in order.items %}
               <tr>
                 <td class="text-light">{{ item.product.name }}</td>
-                <td class="text-muted">${{ "%.2f"|format(item.price) }}</td>
+                <td class="text-muted">{{ format_price(item.price) }}</td>
                 <td class="text-muted">{{ item.quantity }}</td>
-                <td class="text-accent">${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                <td class="text-accent">{{ format_price(item.price * item.quantity) }}</td>
               </tr>
               {% endfor %}
             </tbody>
             <tfoot>
               <tr>
                 <td colspan="3" class="text-end text-light fw-bold">Total:</td>
-                <td class="text-accent fw-bold fs-5">${{ "%.2f"|format(order.total) }}</td>
+                <td class="text-accent fw-bold fs-5">{{ format_price(order.total) }}</td>
               </tr>
             </tfoot>
           </table>

@@ -85,7 +85,7 @@
                   <td class="text-accent fw-bold">{{ order.order_number }}</td>
                   <td class="text-muted">{{ order.created_at.strftime('%Y-%m-%d') }}</td>
                   <td class="text-muted">{{ order.items|length }} item(s)</td>
-                  <td class="text-light">${{ "%.2f"|format(order.total) }}</td>
+                  <td class="text-light">{{ format_price(order.total) }}</td>
                   <td>
                     <span class="badge bg-{{ 'success' if order.payment_status == 'confirmed' else ('warning text-dark' if order.payment_status == 'submitted' else 'secondary') }}">
                       {{ order.payment_status|title }}

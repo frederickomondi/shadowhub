@@ -37,7 +37,7 @@
               <small class="text-muted">{{ order.email }}</small>
             </td>
             <td class="text-muted small">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-            <td class="text-light">${{ "%.2f"|format(order.total) }}</td>
+            <td class="text-light">{{ format_price(order.total) }}</td>
             <td><span class="badge bg-dark border border-secondary">{{ order.payment_method }}</span></td>
             <td>
               <span class="badge bg-{{ 'success' if order.payment_status == 'confirmed' else ('info' if order.payment_status == 'submitted' else 'secondary') }}">

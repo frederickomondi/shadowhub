@@ -35,7 +35,7 @@
               <small class="text-muted">{{ product.slug }}</small>
             </td>
             <td class="text-muted">{{ product.category.name if product.category else '-' }}</td>
-            <td class="text-accent">${{ "%.2f"|format(product.price) }}</td>
+            <td class="text-accent">{{ format_price(product.price) }}</td>
             <td class="text-{{ 'danger' if product.stock == 0 else ('warning' if product.stock <= 10 else 'success') }}">{{ product.stock }}</td>
             <td>
               {% if product.is_featured %}

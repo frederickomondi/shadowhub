@@ -25,7 +25,7 @@
   <div class="col-md-3">
     <div class="card dark-card text-center p-4">
       <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
-      <div class="fs-2 fw-bold text-success">${{ "%.2f"|format(revenue) }}</div>
+      <div class="fs-2 fw-bold text-success">{{ format_price(revenue) }}</div>
       <div class="text-muted small">Total Revenue</div>
     </div>
   </div>
@@ -78,7 +78,7 @@
             <td class="text-accent fw-bold">{{ order.order_number }}</td>
             <td class="text-light">{{ order.name }}</td>
             <td class="text-muted">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-            <td class="text-light">${{ "%.2f"|format(order.total) }}</td>
+            <td class="text-light">{{ format_price(order.total) }}</td>
             <td>
               <span class="badge bg-{{ 'success' if order.payment_status == 'confirmed' else ('warning text-dark' if order.payment_status == 'submitted' else 'secondary') }}">
                 {{ order.payment_status|title }}

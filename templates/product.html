@@ -35,7 +35,7 @@
         </div>
         <h1 class="product-detail-title text-light">{{ product.name }}</h1>
         <div class="product-detail-price mt-3">
-          <span class="price-large">${{ "%.2f"|format(product.price) }}</span>
+          <span class="price-large">{{ format_price(product.price) }}</span>
         </div>
 
         <div class="stock-info mt-2 mb-4">
@@ -133,7 +133,7 @@
           <div class="product-info p-3">
             <h6 class="product-name">{{ rp.name }}</h6>
             <div class="product-price-row d-flex justify-content-between align-items-center mt-2">
-              <span class="product-price">${{ "%.2f"|format(rp.price) }}</span>
+              <span class="product-price">{{ format_price(rp.price) }}</span>
               <form action="{{ url_for('cart_add') }}" method="post" class="d-inline">
                 <input type="hidden" name="product_id" value="{{ rp.id }}">
                 <input type="hidden" name="quantity" value="1">

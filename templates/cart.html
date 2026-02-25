@@ -32,7 +32,7 @@
                       </div>
                     </div>
                   </td>
-                  <td class="text-muted align-middle">${{ "%.2f"|format(item.product.price) }}</td>
+                  <td class="text-muted align-middle">{{ format_price(item.product.price) }}</td>
                   <td class="align-middle" style="min-width:140px;">
                     <form action="{{ url_for('cart_update') }}" method="post" class="d-flex align-items-center">
                       <input type="hidden" name="product_id" value="{{ item.product.id }}">
@@ -44,7 +44,7 @@
                       <button type="submit" class="btn btn-sm btn-outline-accent ms-2"><i class="fas fa-sync-alt"></i></button>
                     </form>
                   </td>
-                  <td class="text-accent align-middle fw-bold">${{ "%.2f"|format(item.subtotal) }}</td>
+                  <td class="text-accent align-middle fw-bold">{{ format_price(item.subtotal) }}</td>
                   <td class="align-middle">
                     <form action="{{ url_for('cart_remove') }}" method="post">
                       <input type="hidden" name="product_id" value="{{ item.product.id }}">
@@ -70,13 +70,13 @@
           {% for item in cart_items %}
           <div class="d-flex justify-content-between text-muted mb-2">
             <span class="small">{{ item.product.name }} x{{ item.quantity }}</span>
-            <span>${{ "%.2f"|format(item.subtotal) }}</span>
+            <span>{{ format_price(item.subtotal) }}</span>
           </div>
           {% endfor %}
           <hr class="border-secondary">
           <div class="d-flex justify-content-between mb-1">
             <span class="text-muted">Subtotal</span>
-            <span class="text-light">${{ "%.2f"|format(total) }}</span>
+            <span class="text-light">{{ format_price(total) }}</span>
           </div>
           <div class="d-flex justify-content-between mb-3">
             <span class="text-muted">Shipping</span>
@@ -85,7 +85,7 @@
           <hr class="border-secondary">
           <div class="d-flex justify-content-between mb-4">
             <span class="text-light fw-bold">Total</span>
-            <span class="text-accent fw-bold fs-5">${{ "%.2f"|format(total) }}</span>
+            <span class="text-accent fw-bold fs-5">{{ format_price(total) }}</span>
           </div>
           <a href="{{ url_for('checkout') }}" class="btn btn-accent w-100 btn-lg">
             <i class="fas fa-lock me-2"></i>Proceed to Checkout

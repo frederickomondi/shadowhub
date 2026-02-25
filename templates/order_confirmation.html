@@ -18,12 +18,16 @@
           <h5 class="text-accent mb-3"><i class="fab fa-bitcoin me-2"></i>Payment Instructions</h5>
           <div class="alert alert-warning">
             <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>Important:</strong> Send exactly <strong>${{ "%.2f"|format(order.total) }} USD</strong> worth of <strong>{{ order.payment_method }}</strong> to the address below. You have <strong id="countdown-display">30:00</strong> to complete your payment.
+            <strong>Important:</strong> Send exactly
+            <strong>{{ crypto_equivalent(order.total, order.payment_method) }}</strong>
+            (≈ {{ format_price(order.total) }})
+            to the address below. You have <strong id="countdown-display">30:00</strong> to complete your payment.
           </div>
 
           <div class="payment-step mb-4">
             <h6 class="text-light">Step 1: Send Payment</h6>
-            <p class="text-muted small">Send <strong class="text-accent">${{ "%.2f"|format(order.total) }}</strong> in {{ order.payment_method }} to this wallet address:</p>
+            <p class="text-muted small">Send <strong class="text-accent">{{ crypto_equivalent(order.total, order.payment_method) }}</strong>
+              <span class="text-muted">(≈ {{ format_price(order.total) }})</span> in {{ order.payment_method }} to this wallet address:</p>
             <div class="wallet-address-box p-3 rounded mb-3">
               <code id="wallet-address" class="text-accent break-all">{{ wallet_address }}</code>
               <button class="btn btn-sm btn-outline-accent ms-2" onclick="copyWallet()"><i class="fas fa-copy"></i></button>
@@ -108,13 +112,13 @@
           {% for item in order.items %}
           <div class="d-flex justify-content-between mb-2">
             <span class="text-light small">{{ item.product.name }} x{{ item.quantity }}</span>
-            <span class="text-accent">${{ "%.2f"|format(item.price * item.quantity) }}</span>
+            <span class="text-accent">{{ format_price(item.price * item.quantity) }}</span>
           </div>
           {% endfor %}
           <hr class="border-secondary">
           <div class="d-flex justify-content-between">
             <span class="text-light fw-bold">Total</span>
-            <span class="text-accent fw-bold fs-5">${{ "%.2f"|format(order.total) }}</span>
+            <span class="text-accent fw-bold fs-5">{{ format_price(order.total) }}</span>
           </div>
         </div>
       </div>
