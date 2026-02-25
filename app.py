@@ -104,6 +104,7 @@ def inject_globals():
         supported_currencies=CURRENCIES,
         crypto_rates=CRYPTO_RATES,
         seo_keywords=SEO_KEYWORDS,
+        contact_email=app.config['CONTACT_EMAIL'],
     )
 
 

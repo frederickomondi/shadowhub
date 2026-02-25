@@ -179,6 +179,8 @@ body {
 .footer { background: var(--bg-secondary); border-top: 1px solid var(--border-color); }
 .footer-links li a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; display: block; margin-bottom: 8px; }
 .footer-links li a:hover { color: var(--accent); }
+.footer-email-link { color: var(--accent); text-decoration: none; font-size: 0.82rem; word-break: break-all; transition: opacity .2s; }
+.footer-email-link:hover { opacity: .8; color: var(--accent); }
 .payment-badge { font-size: 0.9rem; color: var(--text-muted); }
 .payment-methods-footer { display: flex; flex-direction: column; }
 

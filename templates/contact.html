@@ -17,16 +17,20 @@
         <div class="col-lg-7">
           <div class="card dark-card contact-card">
             <div class="card-body p-4 p-md-5">
-              <h5 class="text-accent mb-4">
+              <h5 class="text-accent mb-1">
                 <i class="fas fa-paper-plane me-2"></i>Send a Message
               </h5>
+              <p class="text-muted small mb-4">
+                Your message will be delivered to
+                <a href="mailto:{{ contact_email }}" class="text-accent text-decoration-none fw-semibold">{{ contact_email }}</a>
+              </p>
 
               {% if success %}
               <div class="alert contact-success-alert d-flex align-items-center gap-3" role="alert">
                 <i class="fas fa-check-circle fa-2x text-success flex-shrink-0"></i>
                 <div>
                   <strong class="text-light d-block">Message sent!</strong>
-                  <span class="text-muted small">Thank you, <strong class="text-accent">{{ submitted_name }}</strong>. We'll reply to <strong class="text-accent">{{ submitted_email }}</strong> within 24 hours.</span>
+                  <span class="text-muted small">Thank you, <strong class="text-accent">{{ submitted_name }}</strong>. We'll reply to <strong class="text-accent">{{ submitted_email }}</strong> within 24 hours from <a href="mailto:{{ contact_email }}" class="text-accent text-decoration-none">{{ contact_email }}</a>.</span>
                 </div>
               </div>
               {% endif %}
@@ -152,6 +156,15 @@
               </a>
             </div>
 
+            <div class="card dark-card info-card contact-email-card p-4">
+              <div class="info-icon mx-auto mb-3"><i class="fas fa-envelope fa-lg text-accent"></i></div>
+              <h6 class="text-light mb-1 text-center">Email Us Directly</h6>
+              <p class="text-muted small text-center mb-2">Prefer to email us directly? We're at:</p>
+              <a href="mailto:{{ contact_email }}" class="contact-direct-email-link text-center d-block">
+                <i class="fas fa-envelope me-1"></i>{{ contact_email }}
+              </a>
+            </div>
+
           </div>
         </div>
 
@@ -204,6 +217,16 @@
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
 }
+.contact-email-card { border: 1px solid rgba(108,99,255,0.35); }
+.contact-direct-email-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  word-break: break-all;
+  transition: opacity .2s;
+}
+.contact-direct-email-link:hover { opacity: .75; color: var(--accent); }
 </style>
 {% endblock %}
 

@@ -14,3 +14,6 @@ class Config:
     TRX_WALLET = 'TR7j6aFEPhwzJuzYQ5ePksbKESjR8gL6MG'
 
     PAYMENT_TIMEOUT_MINUTES = 30
+
+    # Support contact
+    CONTACT_EMAIL = 'salesshadowhub@proton.me'
