@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}ShadowHub – Best Anonymous Marketplace | Buy with Bitcoin, Monero, USDT{% endblock %}
+{% block meta_description %}ShadowHub is the most trusted darknet-style marketplace. Buy products discreetly with Bitcoin, Monero, USDT and TRX. Express delivery, 110% guaranteed, no account required.{% endblock %}
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center min-vh-60">
+      <div class="col-lg-7">
+        <div class="hero-badge mb-3"><i class="fas fa-shield-alt me-2"></i>100% Anonymous Shopping</div>
+        <h1 class="hero-title">{{ t('hero_title')|replace(', ', ',<br>')|safe }}</h1>
+        <p class="hero-subtitle">{{ t('hero_subtitle') }}</p>
+        <p class="hero-desc text-muted">{{ t('hero_desc') }}</p>
+        <div class="hero-buttons mt-4">
+          <a href="{{ url_for('shop') }}" class="btn btn-accent btn-lg me-3"><i class="fas fa-store me-2"></i>{{ t('browse_shop') }}</a>
+          <a href="{{ url_for('how_to_order') }}" class="btn btn-outline-light btn-lg"><i class="fas fa-book me-2"></i>{{ t('how_it_works') }}</a>
+        </div>
+        <div class="hero-stats mt-5">
+          <div class="stat-item"><span class="stat-number">500+</span><span class="stat-label">Products</span></div>
+          <div class="stat-item"><span class="stat-number">10K+</span><span class="stat-label">Orders</span></div>
+          <div class="stat-item"><span class="stat-number">99%</span><span class="stat-label">Satisfaction</span></div>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block">
+        <div class="hero-visual">
+          <div class="hero-card-float card-1"><i class="fab fa-bitcoin fa-3x text-warning"></i></div>
+          <div class="hero-card-float card-2"><i class="fas fa-shield-alt fa-3x text-accent"></i></div>
+          <div class="hero-card-float card-3"><i class="fas fa-lock fa-3x text-success"></i></div>
+          <div class="hero-orb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories Section -->
+<section class="section-padding">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">{{ t('browse_categories') }}</h2>
+      <p class="section-subtitle text-muted">{{ t('find_products') }}</p>
+    </div>
+    <div class="row g-4">
+      {% for category in categories %}
+      <div class="col-lg-3 col-md-6">
+        <a href="{{ url_for('shop', category=category.slug) }}" class="text-decoration-none">
+          <div class="category-card text-center p-4">
+            <div class="category-icon mb-3">
+              {% if loop.index == 1 %}<i class="fas fa-microchip fa-2x text-accent"></i>
+              {% elif loop.index == 2 %}<i class="fas fa-code fa-2x" style="color:#e94560"></i>
+              {% elif loop.index == 3 %}<i class="fas fa-download fa-2x" style="color:#00b4d8"></i>
+              {% else %}<i class="fas fa-concierge-bell fa-2x" style="color:#06d6a0"></i>{% endif %}
+            </div>
+            <h5 class="text-light">{{ category.name }}</h5>
+            <p class="text-muted small">{{ category.description[:60] if category.description else '' }}...</p>
+            <span class="btn btn-sm btn-outline-accent">{{ t('view_products') }}</span>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Featured Products -->
+<section class="section-padding bg-secondary-dark">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">{{ t('featured_products') }}</h2>
+      <p class="section-subtitle text-muted">{{ t('popular_items') }}</p>
+    </div>
+    <div class="row g-4">
+      {% for product in featured_products %}
+      <div class="col-lg-3 col-md-6">
+        <div class="product-card">
+          <div class="product-img-wrapper">
+            <img src="{{ product.image_url or 'https://via.placeholder.com/300x200/1a1a2e/6c63ff?text=Product' }}" alt="{{ product.name }}" class="product-img">
+            <div class="product-overlay">
+              <a href="{{ url_for('product_detail', slug=product.slug) }}" class="btn btn-accent btn-sm">{{ t('view_details') }}</a>
+            </div>
+          </div>
+          <div class="product-info p-3">
+            <div class="product-category text-muted small mb-1">{{ product.category.name if product.category else 'General' }}</div>
+            <h6 class="product-name">{{ product.name }}</h6>
+            <div class="product-price-row d-flex justify-content-between align-items-center mt-2">
+              <span class="product-price">{{ format_price(product.price) }}</span>
+              <form action="{{ url_for('cart_add') }}" method="post" class="d-inline">
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-accent btn-sm" title="{{ t('add_to_cart') }}"><i class="fas fa-cart-plus"></i></button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-5">
+      <a href="{{ url_for('shop') }}" class="btn btn-accent btn-lg"><i class="fas fa-store me-2"></i>{{ t('view_all') }}</a>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="section-padding">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="section-title">{{ t('how_it_works') }}</h2>
+      <p class="section-subtitle text-muted">{{ t('simple_secure') }}</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-lg-4 col-md-6">
+        <div class="step-card text-center p-4">
+          <div class="step-number">01</div>
+          <div class="step-icon mb-3"><i class="fas fa-search fa-2x text-accent"></i></div>
+          <h5 class="text-light">{{ t('step1_title') }}</h5>
+          <p class="text-muted">{{ t('step1_desc') }}</p>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="step-card text-center p-4">
+          <div class="step-number">02</div>
+          <div class="step-icon mb-3"><i class="fab fa-bitcoin fa-2x text-warning"></i></div>
+          <h5 class="text-light">{{ t('step2_title') }}</h5>
+          <p class="text-muted">{{ t('step2_desc') }}</p>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="step-card text-center p-4">
+          <div class="step-number">03</div>
+          <div class="step-icon mb-3"><i class="fas fa-shipping-fast fa-2x text-success"></i></div>
+          <h5 class="text-light">{{ t('step3_title') }}</h5>
+          <p class="text-muted">{{ t('step3_desc') }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust Badges -->
+<section class="section-padding bg-secondary-dark">
+  <div class="container">
+    <div class="row g-4 justify-content-center">
+      <div class="col-lg-3 col-md-6 text-center">
+        <div class="trust-badge p-3">
+          <i class="fas fa-lock fa-2x text-accent mb-2"></i>
+          <h6 class="text-light">{{ t('secure_payments') }}</h6>
+          <p class="text-muted small">{{ t('secure_payments_desc') }}</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 text-center">
+        <div class="trust-badge p-3">
+          <i class="fas fa-user-secret fa-2x text-accent mb-2"></i>
+          <h6 class="text-light">{{ t('anonymous') }}</h6>
+          <p class="text-muted small">{{ t('anonymous_desc') }}</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 text-center">
+        <div class="trust-badge p-3">
+          <i class="fas fa-headset fa-2x text-accent mb-2"></i>
+          <h6 class="text-light">{{ t('support') }}</h6>
+          <p class="text-muted small">{{ t('support_desc') }}</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 text-center">
+        <div class="trust-badge p-3">
+          <i class="fas fa-redo fa-2x text-accent mb-2"></i>
+          <h6 class="text-light">{{ t('returns') }}</h6>
+          <p class="text-muted small">{{ t('returns_desc') }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

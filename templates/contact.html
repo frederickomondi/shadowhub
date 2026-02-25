@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% block title %}Contact Us – ShadowHub{% endblock %}
+{% block meta_description %}Get in touch with ShadowHub support. We respond within 24 hours. Secure and private communications.{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <div class="text-center mb-5">
+        <h1 class="text-light">Contact <span class="text-accent">Us</span></h1>
+        <p class="text-muted">We're here to help. Send us a message and we'll get back to you shortly.</p>
+      </div>
+
+      <div class="row g-4 align-items-start">
+
+        {# ── Contact Form ── #}
+        <div class="col-lg-7">
+          <div class="card dark-card contact-card">
+            <div class="card-body p-4 p-md-5">
+              <h5 class="text-accent mb-1">
+                <i class="fas fa-paper-plane me-2"></i>Send a Message
+              </h5>
+              <p class="text-muted small mb-4">
+                Your message will be delivered to
+                <a href="mailto:{{ contact_email }}" class="text-accent text-decoration-none fw-semibold">{{ contact_email }}</a>
+              </p>
+
+              {% if success %}
+              <div class="alert contact-success-alert d-flex align-items-center gap-3" role="alert">
+                <i class="fas fa-check-circle fa-2x text-success flex-shrink-0"></i>
+                <div>
+                  <strong class="text-light d-block">Message sent!</strong>
+                  <span class="text-muted small">Thank you, <strong class="text-accent">{{ submitted_name }}</strong>. We'll reply to <strong class="text-accent">{{ submitted_email }}</strong> within 24 hours from <a href="mailto:{{ contact_email }}" class="text-accent text-decoration-none">{{ contact_email }}</a>.</span>
+                </div>
+              </div>
+              {% endif %}
+
+              <form method="post" action="{{ url_for('contact') }}" novalidate id="contactForm">
+
+                {# Name #}
+                <div class="mb-3">
+                  <label for="contactName" class="form-label contact-label">
+                    Full Name <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group contact-input-group">
+                    <span class="input-group-text contact-icon"><i class="fas fa-user"></i></span>
+                    <input
+                      type="text"
+                      id="contactName"
+                      name="name"
+                      class="form-control dark-input"
+                      placeholder="John Doe"
+                      required
+                      value="{{ form_data.name if form_data else '' }}"
+                      autocomplete="name"
+                    >
+                  </div>
+                  <div class="invalid-feedback-custom" id="nameError"></div>
+                </div>
+
+                {# Email #}
+                <div class="mb-3">
+                  <label for="contactEmail" class="form-label contact-label">
+                    Email Address <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group contact-input-group">
+                    <span class="input-group-text contact-icon"><i class="fas fa-envelope"></i></span>
+                    <input
+                      type="email"
+                      id="contactEmail"
+                      name="email"
+                      class="form-control dark-input"
+                      placeholder="you@example.com"
+                      required
+                      value="{{ form_data.email if form_data else '' }}"
+                      autocomplete="email"
+                    >
+                  </div>
+                  <div class="invalid-feedback-custom" id="emailError"></div>
+                </div>
+
+                {# Subject #}
+                <div class="mb-3">
+                  <label for="contactSubject" class="form-label contact-label">
+                    Subject <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group contact-input-group">
+                    <span class="input-group-text contact-icon"><i class="fas fa-tag"></i></span>
+                    <input
+                      type="text"
+                      id="contactSubject"
+                      name="subject"
+                      class="form-control dark-input"
+                      placeholder="e.g. Order issue, Payment question…"
+                      required
+                      value="{{ form_data.subject if form_data else '' }}"
+                    >
+                  </div>
+                  <div class="invalid-feedback-custom" id="subjectError"></div>
+                </div>
+
+                {# Message – optional #}
+                <div class="mb-4">
+                  <label for="contactMessage" class="form-label contact-label">
+                    Message <span class="text-muted small">(optional)</span>
+                  </label>
+                  <textarea
+                    id="contactMessage"
+                    name="message"
+                    class="form-control dark-input"
+                    rows="5"
+                    placeholder="Tell us more about your request…"
+                  >{{ form_data.message if form_data else '' }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-accent w-100 contact-submit-btn" id="submitBtn">
+                  <i class="fas fa-paper-plane me-2"></i>Send Message
+                </button>
+
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {# ── Info Sidebar ── #}
+        <div class="col-lg-5">
+          <div class="d-flex flex-column gap-3">
+
+            <div class="card dark-card info-card text-center p-4">
+              <div class="info-icon mx-auto mb-3"><i class="fas fa-bolt fa-lg text-accent"></i></div>
+              <h6 class="text-light mb-1">Fast Response</h6>
+              <p class="text-muted small mb-0">We typically reply within <strong class="text-accent">24 hours</strong>, often sooner.</p>
+            </div>
+
+            <div class="card dark-card info-card text-center p-4">
+              <div class="info-icon mx-auto mb-3"><i class="fas fa-shield-alt fa-lg text-accent"></i></div>
+              <h6 class="text-light mb-1">Secure &amp; Private</h6>
+              <p class="text-muted small mb-0">All messages are encrypted. We never share your details.</p>
+            </div>
+
+            <div class="card dark-card info-card text-center p-4">
+              <div class="info-icon mx-auto mb-3"><i class="fas fa-question-circle fa-lg text-accent"></i></div>
+              <h6 class="text-light mb-1">Check the FAQ First</h6>
+              <p class="text-muted small mb-2">Your question may already be answered.</p>
+              <a href="{{ url_for('faq') }}" class="btn btn-outline-accent btn-sm">
+                <i class="fas fa-book-open me-1"></i>View FAQ
+              </a>
+            </div>
+
+            <div class="card dark-card info-card text-center p-4">
+              <div class="info-icon mx-auto mb-3"><i class="fas fa-search fa-lg text-accent"></i></div>
+              <h6 class="text-light mb-1">Track Your Order</h6>
+              <p class="text-muted small mb-2">Have an order number? Check its status directly.</p>
+              <a href="{{ url_for('order_tracking') }}" class="btn btn-outline-accent btn-sm">
+                <i class="fas fa-map-marker-alt me-1"></i>Track Order
+              </a>
+            </div>
+
+            <div class="card dark-card info-card contact-email-card p-4">
+              <div class="info-icon mx-auto mb-3"><i class="fas fa-envelope fa-lg text-accent"></i></div>
+              <h6 class="text-light mb-1 text-center">Email Us Directly</h6>
+              <p class="text-muted small text-center mb-2">Prefer to email us directly? We're at:</p>
+              <a href="mailto:{{ contact_email }}" class="contact-direct-email-link text-center d-block">
+                <i class="fas fa-envelope me-1"></i>{{ contact_email }}
+              </a>
+            </div>
+
+            {# ── PGP Key Card ── #}
+            <div class="card dark-card info-card contact-pgp-card p-4">
+              <div class="info-icon mx-auto mb-3"><i class="fas fa-key fa-lg text-accent"></i></div>
+              <h6 class="text-light mb-1 text-center">PGP / GPG Encryption</h6>
+              <p class="text-muted small text-center mb-3">
+                Encrypt sensitive messages to us using our PGP public key for maximum privacy.
+              </p>
+
+              {% if pgp_key_set %}
+              {# Fingerprint #}
+              <div class="pgp-fingerprint-box mb-3">
+                <div class="text-muted small mb-1"><i class="fas fa-fingerprint me-1"></i>Key Fingerprint</div>
+                <code class="pgp-fingerprint-code" id="pgpFingerprint">{{ pgp_fingerprint }}</code>
+                <button class="btn btn-sm btn-outline-accent mt-2 w-100"
+                        onclick="copyText('pgpFingerprint','Fingerprint copied!')">
+                  <i class="fas fa-copy me-1"></i>Copy Fingerprint
+                </button>
+              </div>
+
+              {# Full key #}
+              <div class="pgp-key-box mb-2">
+                <div class="text-muted small mb-1"><i class="fas fa-shield-alt me-1"></i>Public Key</div>
+                <textarea class="pgp-key-textarea" id="pgpPublicKey" readonly rows="6">{{ pgp_key }}</textarea>
+                <button class="btn btn-accent w-100 mt-2"
+                        onclick="copyText('pgpPublicKey','PGP key copied!')">
+                  <i class="fas fa-copy me-1"></i>Copy Public Key
+                </button>
+              </div>
+
+              <div class="pgp-howto-box mt-3">
+                <p class="text-muted small mb-1 fw-semibold"><i class="fas fa-question-circle me-1"></i>How to use:</p>
+                <ol class="text-muted small ps-3 mb-0">
+                  <li>Copy the public key above</li>
+                  <li>Import it into Kleopatra, GPG4Win, or GPG Suite</li>
+                  <li>Write your message, then encrypt to <code class="text-accent">{{ contact_email }}</code></li>
+                  <li>Paste the encrypted block into the message field on the left</li>
+                </ol>
+              </div>
+
+              {% else %}
+              {# Placeholder — admin hasn't added their key yet #}
+              <div class="pgp-pending-box text-center">
+                <i class="fas fa-hourglass-half fa-2x text-muted mb-2"></i>
+                <p class="text-muted small mb-2">Our PGP key will be published here shortly.</p>
+                <p class="text-muted small">In the meantime, contact us at:<br>
+                  <a href="mailto:{{ contact_email }}" class="text-accent text-decoration-none">{{ contact_email }}</a>
+                </p>
+              </div>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.contact-card { border: 1px solid rgba(108,99,255,0.25); border-radius: 14px; }
+.contact-label { color: #c5c5d8; font-size: .85rem; font-weight: 500; margin-bottom: .35rem; }
+.contact-input-group .input-group-text.contact-icon {
+  background: rgba(108,99,255,0.12);
+  border: 1px solid rgba(108,99,255,0.25);
+  border-right: none;
+  color: var(--accent);
+}
+.contact-input-group .form-control {
+  border-left: none;
+  border-color: rgba(108,99,255,0.25);
+}
+.contact-input-group .form-control:focus {
+  border-color: var(--accent);
+  box-shadow: none;
+}
+.invalid-feedback-custom {
+  color: #e94560;
+  font-size: .78rem;
+  margin-top: .25rem;
+  display: none;
+}
+.invalid-feedback-custom.visible { display: block; }
+.form-control.input-error { border-color: #e94560 !important; }
+.contact-success-alert {
+  background: rgba(6,214,160,0.1);
+  border: 1px solid rgba(6,214,160,0.35);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 1.5rem;
+}
+.contact-submit-btn { font-size: 1rem; font-weight: 600; padding: 12px; border-radius: 8px; transition: all .3s; }
+.contact-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,.45); }
+.info-card { border: 1px solid rgba(108,99,255,0.15); border-radius: 12px; transition: border-color .25s; }
+.info-card:hover { border-color: rgba(108,99,255,0.4); }
+.info-icon {
+  width: 42px; height: 42px;
+  background: rgba(108,99,255,0.12);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.contact-email-card { border: 1px solid rgba(108,99,255,0.35); }
+.contact-direct-email-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  word-break: break-all;
+  transition: opacity .2s;
+}
+.contact-direct-email-link:hover { opacity: .75; color: var(--accent); }
+
+/* PGP key card */
+.contact-pgp-card { border: 1px solid rgba(108,99,255,0.4); }
+.pgp-fingerprint-box {
+  background: rgba(108,99,255,0.07);
+  border: 1px solid rgba(108,99,255,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.pgp-fingerprint-code {
+  font-size: 0.72rem;
+  color: #a89fff;
+  word-break: break-all;
+  display: block;
+}
+.pgp-key-box {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(108,99,255,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.pgp-key-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #8888aa;
+  font-size: 0.68rem;
+  font-family: monospace;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+}
+.pgp-howto-box {
+  background: rgba(108,99,255,0.05);
+  border-left: 3px solid rgba(108,99,255,0.4);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 12px;
+}
+.pgp-pending-box {
+  background: rgba(108,99,255,0.05);
+  border: 1px dashed rgba(108,99,255,0.25);
+  border-radius: 8px;
+  padding: 16px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyText(elId, msg) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var text = el.tagName === 'TEXTAREA' ? el.value : el.textContent;
+  navigator.clipboard.writeText(text.trim())
+    .then(function() { window.ShadowHub && window.ShadowHub.showToast(msg || 'Copied!'); })
+    .catch(function() {
+      el.select && el.select();
+      try { document.execCommand('copy'); window.ShadowHub && window.ShadowHub.showToast(msg || 'Copied!'); } catch(e) {}
+    });
+}
+(function () {
+  var form = document.getElementById('contactForm');
+  if (!form) return;
+
+  var rules = [
+    { id: 'contactName',    errId: 'nameError',    msg: 'Please enter your full name.' },
+    { id: 'contactEmail',   errId: 'emailError',   msg: 'Please enter a valid email address.' },
+    { id: 'contactSubject', errId: 'subjectError', msg: 'Please enter a subject.' },
+  ];
+
+  function validate(field, errEl, msg) {
+    var ok = field.value.trim() !== '';
+    if (field.type === 'email' && ok) {
+      ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value.trim());
+    }
+    if (!ok) {
+      field.classList.add('input-error');
+      errEl.textContent = msg;
+      errEl.classList.add('visible');
+    } else {
+      field.classList.remove('input-error');
+      errEl.classList.remove('visible');
+    }
+    return ok;
+  }
+
+  // Live validation on blur
+  rules.forEach(function (r) {
+    var f = document.getElementById(r.id);
+    var e = document.getElementById(r.errId);
+    if (f) f.addEventListener('blur', function () { validate(f, e, r.msg); });
+    if (f) f.addEventListener('input', function () { if (f.classList.contains('input-error')) validate(f, e, r.msg); });
+  });
+
+  // Submit validation
+  form.addEventListener('submit', function (ev) {
+    var allOk = true;
+    rules.forEach(function (r) {
+      var f = document.getElementById(r.id);
+      var e = document.getElementById(r.errId);
+      if (!validate(f, e, r.msg)) allOk = false;
+    });
+    if (!allOk) {
+      ev.preventDefault();
+      return;
+    }
+    // Visual feedback
+    var btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending…';
+    btn.disabled = true;
+  });
+})();
+</script>
+{% endblock %}

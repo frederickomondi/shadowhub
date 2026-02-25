@@ -1,0 +1,103 @@
+{% extends 'admin/base.html' %}
+{% block title %}Admin Dashboard - ShadowHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="text-light mb-0"><i class="fas fa-tachometer-alt me-2 text-accent"></i>Dashboard</h2>
+  <small class="text-muted">Welcome back, {{ current_user.username }}</small>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card dark-card text-center p-4">
+      <i class="fas fa-shopping-bag fa-2x text-accent mb-2"></i>
+      <div class="fs-2 fw-bold text-light">{{ total_orders }}</div>
+      <div class="text-muted small">Total Orders</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card dark-card text-center p-4">
+      <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+      <div class="fs-2 fw-bold text-warning">{{ pending_orders }}</div>
+      <div class="text-muted small">Pending Payment</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card dark-card text-center p-4">
+      <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+      <div class="fs-2 fw-bold text-success">{{ format_price(revenue) }}</div>
+      <div class="text-muted small">Total Revenue</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card dark-card text-center p-4 {% if open_disputes > 0 %}border-warning{% endif %}">
+      <i class="fas fa-flag fa-2x {% if open_disputes > 0 %}text-warning{% else %}text-info{% endif %} mb-2"></i>
+      <div class="fs-2 fw-bold {% if open_disputes > 0 %}text-warning{% else %}text-info{% endif %}">{{ open_disputes }}</div>
+      <div class="text-muted small">Open Disputes</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+  <div class="col-auto">
+    <a href="{{ url_for('admin_add_product') }}" class="btn btn-accent"><i class="fas fa-plus me-2"></i>Add Product</a>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('admin_orders', status='pending') }}" class="btn btn-outline-warning"><i class="fas fa-clock me-2"></i>Pending Orders</a>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('admin_orders', status='submitted') }}" class="btn btn-outline-info"><i class="fas fa-paper-plane me-2"></i>Submitted Payments</a>
+  </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="card dark-card">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="text-light mb-0">Recent Orders</h5>
+      <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-accent">View All</a>
+    </div>
+    {% if recent_orders %}
+    <div class="table-responsive">
+      <table class="table dark-table">
+        <thead>
+          <tr>
+            <th class="text-muted">Order #</th>
+            <th class="text-muted">Customer</th>
+            <th class="text-muted">Date</th>
+            <th class="text-muted">Total</th>
+            <th class="text-muted">Payment</th>
+            <th class="text-muted">Method</th>
+            <th class="text-muted">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr>
+            <td class="text-accent fw-bold">{{ order.order_number }}</td>
+            <td class="text-light">{{ order.name }}</td>
+            <td class="text-muted">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="text-light">{{ format_price(order.total) }}</td>
+            <td>
+              <span class="badge bg-{{ 'success' if order.payment_status == 'confirmed' else ('warning text-dark' if order.payment_status == 'submitted' else 'secondary') }}">
+                {{ order.payment_status|title }}
+              </span>
+            </td>
+            <td><span class="badge bg-dark border border-secondary">{{ order.payment_method }}</span></td>
+            <td>
+              <a href="{{ url_for('admin_order_detail', order_number=order.order_number) }}" class="btn btn-sm btn-outline-accent">
+                <i class="fas fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-4 text-muted">No orders yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

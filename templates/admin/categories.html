@@ -1,0 +1,155 @@
+{% extends 'admin/base.html' %}
+{% block title %}Categories - Admin ShadowHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="text-light mb-0"><i class="fas fa-tags me-2 text-accent"></i>Categories</h2>
+</div>
+
+<div class="row g-4">
+
+  {# ── Add Category Form ── #}
+  <div class="col-lg-4">
+    <div class="card dark-card">
+      <div class="card-body">
+        <h5 class="text-light mb-4"><i class="fas fa-plus-circle me-2 text-accent"></i>Add New Category</h5>
+        <form method="post" action="{{ url_for('admin_add_category') }}">
+
+          <div class="mb-3">
+            <label class="form-label text-muted small">Category Name *</label>
+            <input type="text" name="name" class="form-control dark-input" required placeholder="e.g. Cannabis">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-muted small">Slug</label>
+            <input type="text" name="slug" class="form-control dark-input" placeholder="auto-generated if blank">
+            <small class="text-muted">URL-friendly identifier (e.g. cannabis)</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-muted small">Parent Category</label>
+            <select name="parent_id" class="form-select dark-input">
+              <option value="">— None (top-level category) —</option>
+              {% for parent in top_categories %}
+              <option value="{{ parent.id }}">{{ parent.name }}</option>
+              {% endfor %}
+            </select>
+            <small class="text-muted">Leave blank to create a top-level category</small>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label text-muted small">Description</label>
+            <textarea name="description" class="form-control dark-input" rows="2" placeholder="Short description..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-accent w-100">
+            <i class="fas fa-plus me-2"></i>Add Category
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {# ── Category Tree ── #}
+  <div class="col-lg-8">
+    <div class="card dark-card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table dark-table mb-0">
+            <thead>
+              <tr>
+                <th class="text-muted ps-4">Category</th>
+                <th class="text-muted">Slug</th>
+                <th class="text-muted text-center">Products</th>
+                <th class="text-muted text-end pe-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for parent in top_categories %}
+              {# ── Parent row ── #}
+              <tr class="cat-parent-row">
+                <td class="ps-4">
+                  <span class="text-light fw-semibold">
+                    {% if parent.children %}<i class="fas fa-folder-open me-2 text-accent"></i>{% else %}<i class="fas fa-tag me-2 text-accent"></i>{% endif %}
+                    {{ parent.name }}
+                  </span>
+                  {% if parent.children %}
+                  <span class="badge cat-sub-badge ms-2">{{ parent.children|length }} sub</span>
+                  {% endif %}
+                </td>
+                <td><code class="text-muted small">{{ parent.slug }}</code></td>
+                <td class="text-center">
+                  {% set total = namespace(n=parent.products|length) %}
+                  {% for child in parent.children %}{% set total.n = total.n + child.products|length %}{% endfor %}
+                  <span class="badge bg-secondary">{{ total.n }}</span>
+                </td>
+                <td class="text-end pe-3">
+                  <a href="{{ url_for('shop', category=parent.slug) }}" target="_blank"
+                     class="btn btn-sm btn-outline-secondary me-1" title="View in shop">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <form action="{{ url_for('admin_delete_category', id=parent.id) }}" method="post" class="d-inline"
+                        onsubmit="return confirm('Delete {{ parent.name }}? Products will not be deleted.')">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {# ── Child rows ── #}
+              {% for child in parent.children | sort(attribute='name') %}
+              <tr class="cat-child-row">
+                <td class="ps-5">
+                  <span class="text-muted cat-child-arrow me-2">↳</span>
+                  <span class="text-light">{{ child.name }}</span>
+                </td>
+                <td><code class="text-muted small">{{ child.slug }}</code></td>
+                <td class="text-center">
+                  <span class="badge bg-secondary">{{ child.products|length }}</span>
+                </td>
+                <td class="text-end pe-3">
+                  <a href="{{ url_for('shop', category=child.slug) }}" target="_blank"
+                     class="btn btn-sm btn-outline-secondary me-1" title="View in shop">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <form action="{{ url_for('admin_delete_category', id=child.id) }}" method="post" class="d-inline"
+                        onsubmit="return confirm('Delete {{ child.name }}?')">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+              {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-5">
+                  <i class="fas fa-tags fa-2x mb-2 d-block text-muted"></i>
+                  No categories yet. Add your first category using the form.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.cat-parent-row { border-top: 1px solid rgba(108,99,255,0.15); }
+.cat-child-row { background: rgba(108,99,255,0.03); }
+.cat-child-row:last-of-type { border-bottom: 1px solid rgba(108,99,255,0.1); }
+.cat-child-arrow { color: #6c63ff; font-size: 1rem; }
+.cat-sub-badge {
+  background: rgba(108,99,255,0.2);
+  color: #a89fff;
+  font-size: 0.68rem;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+</style>
+{% endblock %}

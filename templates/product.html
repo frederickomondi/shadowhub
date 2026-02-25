@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} - ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb dark-breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('shop') }}">Shop</a></li>
+      {% if product.category %}
+      <li class="breadcrumb-item"><a href="{{ url_for('shop', category=product.category.slug) }}">{{ product.category.name }}</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active text-muted">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+    <!-- Product Image -->
+    <div class="col-lg-5">
+      <div class="product-detail-img-wrapper">
+        <img src="{{ product.image_url or 'https://via.placeholder.com/500x400/1a1a2e/6c63ff?text=Product' }}" alt="{{ product.name }}" class="img-fluid rounded-3 w-100">
+        {% if product.is_featured %}
+        <div class="mt-3">
+          <span class="badge bg-accent px-3 py-2"><i class="fas fa-star me-1"></i>Featured Product</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="col-lg-7">
+      <div class="product-detail-info">
+        <div class="product-category text-accent mb-2">
+          <i class="fas fa-tag me-1"></i>{{ product.category.name if product.category else 'General' }}
+        </div>
+        <h1 class="product-detail-title text-light">{{ product.name }}</h1>
+        <div class="product-detail-price mt-3">
+          <span class="price-large">{{ format_price(product.price) }}</span>
+        </div>
+
+        <div class="stock-info mt-2 mb-4">
+          {% if product.stock > 10 %}
+          <span class="text-success"><i class="fas fa-check-circle me-1"></i>In Stock ({{ product.stock }} available)</span>
+          {% elif product.stock > 0 %}
+          <span class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Low Stock - Only {{ product.stock }} left!</span>
+          {% else %}
+          <span class="text-danger"><i class="fas fa-times-circle me-1"></i>Out of Stock</span>
+          {% endif %}
+        </div>
+
+        <div class="product-description mb-4">
+          <h6 class="text-accent">Description</h6>
+          <p class="text-muted">{{ product.description }}</p>
+        </div>
+
+        {% if product.stock > 0 %}
+        <form action="{{ url_for('cart_add') }}" method="post" class="add-to-cart-form">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+          <div class="row g-3 align-items-center">
+            <div class="col-auto">
+              <label class="text-muted small">Quantity:</label>
+              <div class="input-group quantity-input mt-1">
+                <button type="button" class="btn btn-outline-secondary qty-minus">-</button>
+                <input type="number" name="quantity" class="form-control dark-input text-center qty-field" value="1" min="1" max="{{ product.stock }}">
+                <button type="button" class="btn btn-outline-secondary qty-plus">+</button>
+              </div>
+            </div>
+            <div class="col">
+              <button type="submit" class="btn btn-accent btn-lg w-100 mt-3">
+                <i class="fas fa-cart-plus me-2"></i>Add to Cart
+              </button>
+            </div>
+          </div>
+        </form>
+        {% else %}
+        <button class="btn btn-secondary btn-lg w-100" disabled>Out of Stock</button>
+        {% endif %}
+
+        <div class="product-features mt-4">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="feature-item p-3 dark-card rounded">
+                <i class="fas fa-shield-alt text-accent me-2"></i>
+                <small class="text-muted">Secure Payment</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="feature-item p-3 dark-card rounded">
+                <i class="fas fa-user-secret text-accent me-2"></i>
+                <small class="text-muted">Anonymous</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="feature-item p-3 dark-card rounded">
+                <i class="fas fa-shipping-fast text-accent me-2"></i>
+                <small class="text-muted">Fast Delivery</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="feature-item p-3 dark-card rounded">
+                <i class="fas fa-redo text-accent me-2"></i>
+                <small class="text-muted">Easy Returns</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="payment-methods mt-4">
+          <small class="text-muted">Accepted payments: </small>
+          <span class="badge bg-dark border border-secondary text-warning ms-1"><i class="fab fa-bitcoin me-1"></i>BTC</span>
+          <span class="badge bg-dark border border-secondary text-info ms-1">XMR</span>
+          <span class="badge bg-dark border border-secondary text-success ms-1">USDT</span>
+          <span class="badge bg-dark border border-secondary text-primary ms-1">TRX</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  {% if related_products %}
+  <section class="mt-6 pt-5">
+    <h4 class="text-light mb-4">Related <span class="text-accent">Products</span></h4>
+    <div class="row g-4">
+      {% for rp in related_products %}
+      <div class="col-lg-3 col-md-6">
+        <div class="product-card">
+          <div class="product-img-wrapper">
+            <img src="{{ rp.image_url or 'https://via.placeholder.com/300x200/1a1a2e/6c63ff?text=Product' }}" alt="{{ rp.name }}" class="product-img">
+            <div class="product-overlay">
+              <a href="{{ url_for('product_detail', slug=rp.slug) }}" class="btn btn-accent btn-sm">View Details</a>
+            </div>
+          </div>
+          <div class="product-info p-3">
+            <h6 class="product-name">{{ rp.name }}</h6>
+            <div class="product-price-row d-flex justify-content-between align-items-center mt-2">
+              <span class="product-price">{{ format_price(rp.price) }}</span>
+              <form action="{{ url_for('cart_add') }}" method="post" class="d-inline">
+                <input type="hidden" name="product_id" value="{{ rp.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-accent btn-sm"><i class="fas fa-cart-plus"></i></button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.qty-minus').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const input = this.parentElement.querySelector('.qty-field');
+    if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+  });
+});
+document.querySelectorAll('.qty-plus').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const input = this.parentElement.querySelector('.qty-field');
+    const max = parseInt(input.getAttribute('max')) || 999;
+    if (parseInt(input.value) < max) input.value = parseInt(input.value) + 1;
+  });
+});
+</script>
+{% endblock %}

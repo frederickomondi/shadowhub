@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+{% block title %}Escrow Panel – {{ order.order_number }} – ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+
+  {# ── Header ── #}
+  <div class="d-flex align-items-center mb-4 gap-3 flex-wrap">
+    <div class="escrow-shield-badge"><i class="fas fa-shield-alt"></i></div>
+    <div>
+      <h2 class="text-light mb-0">Escrow Panel</h2>
+      <p class="text-muted mb-0">Order <strong class="text-accent">{{ order.order_number }}</strong></p>
+    </div>
+    <div class="ms-auto">
+      <span class="badge escrow-status-badge escrow-{{ order.escrow_status }}">
+        {% if order.escrow_status == 'holding' %}🔒 Funds Held in Escrow
+        {% elif order.escrow_status == 'disputed' %}⚠️ Under Dispute
+        {% elif order.escrow_status == 'released' %}✅ Escrow Released
+        {% elif order.escrow_status == 'refunded' %}↩️ Refunded
+        {% else %}{{ order.escrow_status|title }}{% endif %}
+      </span>
+    </div>
+  </div>
+
+  {# ── Warning banner ── #}
+  <div class="alert escrow-main-alert mb-4">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Important:</strong> Only send payment to the escrow wallet address shown below.
+    <strong class="text-warning">Never send coins outside the escrow system.</strong>
+    Your funds are held securely until you confirm satisfactory receipt of your order.
+  </div>
+
+  <div class="row g-4">
+
+    {# ── Left column: payment + actions ── #}
+    <div class="col-lg-7">
+
+      {# ── STEP 1: Payment ── #}
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h5 class="text-accent mb-3">
+            <span class="escrow-step-num">1</span> Send Payment to Escrow Wallet
+          </h5>
+
+          {% if order.payment_status in ('submitted','confirmed') %}
+          <div class="alert alert-success mb-3">
+            <i class="fas fa-check-circle me-2"></i>
+            Payment proof submitted.
+            {% if order.transaction_hash %}<br><small>TX: <code class="text-accent">{{ order.transaction_hash }}</code></small>{% endif %}
+          </div>
+          {% else %}
+          <p class="text-muted small">
+            Send exactly <strong class="text-accent">{{ crypto_equivalent(order.total, order.payment_method) }}</strong>
+            (≈ {{ format_price(order.total) }}) in <strong>{{ order.payment_method }}</strong>
+            to the escrow wallet address below:
+          </p>
+
+          <div class="wallet-address-box p-3 rounded mb-3 d-flex align-items-center gap-2">
+            <code id="escrow-wallet-addr" class="text-accent break-all flex-grow-1">{{ wallet_address }}</code>
+            <button class="btn btn-sm btn-outline-accent flex-shrink-0" onclick="copyEscrowWallet()" title="Copy address">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+
+          <div class="text-center mb-3">
+            <img src="data:image/png;base64,{{ qr_code }}" alt="Escrow QR Code"
+                 class="img-fluid rounded" style="max-width:180px; border:3px solid #6c63ff;">
+            <p class="text-muted small mt-1">Scan QR code with your wallet app</p>
+          </div>
+
+          {# 30-min countdown #}
+          <div class="card dark-card border-warning mb-3 p-3 text-center">
+            <h6 class="text-warning small mb-1"><i class="fas fa-clock me-1"></i>Payment Window</h6>
+            <div class="countdown-timer" id="escrow-countdown">30:00</div>
+            <div class="progress mt-2" style="height:4px;">
+              <div class="progress-bar bg-warning" id="escrow-timer-bar" style="width:100%"></div>
+            </div>
+          </div>
+
+          <form action="{{ url_for('escrow_submit_payment', order_number=order.order_number) }}" method="post">
+            <div class="mb-3">
+              <label class="form-label text-muted small">Transaction Hash / TXID *</label>
+              <input type="text" name="transaction_hash" class="form-control dark-input" required
+                     placeholder="Paste your transaction ID here...">
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted small">Your Sending Wallet Address</label>
+              <input type="text" name="sending_wallet" class="form-control dark-input"
+                     placeholder="Your {{ order.payment_method }} wallet address">
+            </div>
+            <button type="submit" class="btn btn-accent w-100">
+              <i class="fas fa-paper-plane me-2"></i>Submit Payment Proof
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── STEP 2: Confirm Receipt (only after payment submitted + order shipped) ── #}
+      {% if order.payment_status in ('submitted','confirmed') and order.escrow_status == 'holding' and not order.buyer_confirmed %}
+      <div class="card dark-card mb-4 border-success-subtle">
+        <div class="card-body">
+          <h5 class="text-success mb-3">
+            <span class="escrow-step-num escrow-step-green">2</span> Confirm Receipt of Goods
+          </h5>
+          <p class="text-muted small mb-3">
+            Have you received your order and is everything correct and as described?
+            Confirming releases the funds to the vendor.
+          </p>
+          <div class="alert escrow-confirm-alert mb-3">
+            <i class="fas fa-info-circle me-2"></i>
+            Only confirm if you are <strong>completely satisfied</strong> with your order.
+            Once confirmed, the transaction cannot be reversed.
+          </div>
+          <form action="{{ url_for('escrow_confirm_receipt', order_number=order.order_number) }}" method="post"
+                onsubmit="return confirm('Are you sure you want to confirm receipt and release funds to the vendor? This cannot be undone.');">
+            <button type="submit" class="btn btn-success w-100 btn-lg">
+              <i class="fas fa-check-circle me-2"></i>Yes, I Received My Order — Release Funds
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {# ── STEP 3: Open Dispute ── #}
+      {% if not order.dispute %}
+      <div class="card dark-card mb-4 border-warning-subtle">
+        <div class="card-body">
+          <h5 class="text-warning mb-3">
+            <span class="escrow-step-num escrow-step-warning">!</span> Something Wrong?
+          </h5>
+          <p class="text-muted small mb-3">
+            If your order did not arrive, arrived damaged, or is not as described,
+            you may open a dispute. A moderator will review your case.
+          </p>
+          <div class="alert escrow-dispute-policy-alert small mb-3">
+            <strong>Dispute Policy:</strong> Please only dispute if you have a genuine reason.
+            Changing your mind is <strong>not</strong> a valid reason for a dispute.
+          </div>
+          <a href="{{ url_for('escrow_dispute', order_number=order.order_number) }}"
+             class="btn btn-outline-warning w-100">
+            <i class="fas fa-flag me-2"></i>Open a Dispute
+          </a>
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+
+      {# ── Dispute already open ── #}
+      {% if order.dispute %}
+      <div class="card dark-card mb-4 {% if order.dispute.status.startswith('resolved') %}border-success-subtle{% else %}border-warning-subtle{% endif %}">
+        <div class="card-body">
+          <h5 class="text-warning mb-3"><i class="fas fa-flag me-2"></i>Dispute — {{ order.dispute.status|replace('_',' ')|title }}</h5>
+
+          <div class="mb-3">
+            <div class="text-muted small mb-1">Your Reason:</div>
+            <div class="text-light">{{ order.dispute.reason }}</div>
+          </div>
+
+          {% if order.dispute.image_path %}
+          <div class="mb-3">
+            <div class="text-muted small mb-1">Evidence Image:</div>
+            <img src="{{ url_for('static', filename=order.dispute.image_path) }}"
+                 alt="Dispute evidence" class="img-fluid rounded" style="max-width:300px;">
+          </div>
+          {% endif %}
+
+          {% if order.dispute.admin_notes %}
+          <div class="alert escrow-admin-note-alert mb-3">
+            <i class="fas fa-user-shield me-2"></i>
+            <strong>Moderator Note:</strong> {{ order.dispute.admin_notes }}
+          </div>
+          {% endif %}
+
+          {% if order.dispute.extra_proof_requested and not order.dispute.extra_proof_submitted %}
+          <div class="alert alert-warning mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Additional Proof Requested:</strong><br>
+            {% if order.dispute.extra_proof_message %}{{ order.dispute.extra_proof_message }}{% else %}Please provide more information to support your dispute.{% endif %}
+          </div>
+          <form action="{{ url_for('escrow_dispute_extra_proof', order_number=order.order_number) }}" method="post">
+            <div class="mb-3">
+              <label class="form-label text-muted small">Your Additional Proof / Statement *</label>
+              <textarea name="extra_proof" class="form-control dark-input" rows="4" required
+                        placeholder="Provide additional details, tracking info, photos description, etc."></textarea>
+            </div>
+            <button type="submit" class="btn btn-warning w-100">
+              <i class="fas fa-paper-plane me-2"></i>Submit Additional Proof
+            </button>
+          </form>
+          {% elif order.dispute.extra_proof_submitted %}
+          <div class="alert alert-success mb-0">
+            <i class="fas fa-check me-2"></i>Additional proof submitted. Awaiting moderator review.
+          </div>
+          {% endif %}
+
+          {% if order.dispute.status.startswith('resolved') %}
+          <div class="alert alert-success mt-3 mb-0">
+            <i class="fas fa-gavel me-2"></i>
+            <strong>Dispute Resolved:</strong>
+            {% if order.dispute.status == 'resolved_refund' %}Funds have been refunded to you.
+            {% else %}Funds have been released to the vendor.{% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {# ── Escrow released / refunded ── #}
+      {% if order.escrow_status in ('released','refunded') and not order.dispute %}
+      <div class="alert alert-success">
+        <i class="fas fa-check-circle fa-lg me-2"></i>
+        {% if order.escrow_status == 'released' %}
+        <strong>Escrow Released.</strong> You confirmed receipt and funds have been released to the vendor. Thank you!
+        {% else %}
+        <strong>Refunded.</strong> The escrow funds have been returned.
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+
+    {# ── Right column: order summary ── #}
+    <div class="col-lg-5">
+      <div class="card dark-card mb-4 sticky-top" style="top:80px;">
+        <div class="card-body">
+          <h5 class="text-light mb-3">Order Summary</h5>
+          <div class="mb-2 d-flex justify-content-between">
+            <span class="text-muted">Order:</span><span class="text-accent fw-bold">{{ order.order_number }}</span>
+          </div>
+          <div class="mb-2 d-flex justify-content-between">
+            <span class="text-muted">Payment Method:</span><span class="text-light">{{ order.payment_method }}</span>
+          </div>
+          <div class="mb-2 d-flex justify-content-between">
+            <span class="text-muted">Payment Status:</span>
+            <span class="badge bg-{{ 'success' if order.payment_status=='confirmed' else ('warning text-dark' if order.payment_status=='submitted' else 'secondary') }}">
+              {{ order.payment_status|title }}
+            </span>
+          </div>
+          <div class="mb-2 d-flex justify-content-between">
+            <span class="text-muted">Order Status:</span>
+            <span class="badge bg-info">{{ order.order_status|title }}</span>
+          </div>
+          <hr class="border-secondary">
+          <h6 class="text-muted mb-2">Items</h6>
+          {% for item in order.items %}
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-light small">{{ item.product.name }} ×{{ item.quantity }}</span>
+            <span class="text-accent small">{{ format_price(item.price * item.quantity) }}</span>
+          </div>
+          {% endfor %}
+          <hr class="border-secondary">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Total</span><span class="text-light">{{ format_price(order.total) }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-3">
+            <span class="text-muted">Crypto Amount</span>
+            <span class="text-accent fw-bold">{{ crypto_equivalent(order.total, order.payment_method) }}</span>
+          </div>
+          <hr class="border-secondary">
+          <div class="mb-1"><i class="fas fa-user text-accent me-2 small"></i><span class="text-muted small">{{ order.name }}</span></div>
+          <div class="mb-1"><i class="fas fa-envelope text-accent me-2 small"></i><span class="text-muted small">{{ order.email }}</span></div>
+          {% if order.address %}
+          <div><i class="fas fa-map-marker-alt text-accent me-2 small"></i><span class="text-muted small">{{ order.address }}, {{ order.city }}, {{ order.country }}</span></div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="d-grid gap-2">
+        <a href="{{ url_for('order_tracking') }}" class="btn btn-outline-accent">
+          <i class="fas fa-search me-2"></i>Track Order
+        </a>
+        <a href="{{ url_for('shop') }}" class="btn btn-outline-secondary">
+          <i class="fas fa-store me-2"></i>Continue Shopping
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.escrow-shield-badge {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, rgba(108,99,255,0.25), rgba(108,99,255,0.1));
+  border: 1px solid rgba(108,99,255,0.4);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; color: var(--accent);
+}
+.escrow-status-badge { font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; }
+.escrow-holding  { background: rgba(108,99,255,0.2); color: #a89fff; }
+.escrow-disputed { background: rgba(255,193,7,0.2);  color: #ffc107; }
+.escrow-released { background: rgba(6,214,160,0.2);  color: #06d6a0; }
+.escrow-refunded { background: rgba(233,69,96,0.2);  color: #e94560; }
+.escrow-none     { background: rgba(120,120,140,0.2); color: #909099; }
+
+.escrow-main-alert {
+  background: rgba(255,193,7,0.1);
+  border: 1px solid rgba(255,193,7,0.4);
+  border-radius: 10px;
+  color: #ffe066;
+  padding: 12px 18px;
+}
+.escrow-confirm-alert {
+  background: rgba(6,214,160,0.08);
+  border: 1px solid rgba(6,214,160,0.25);
+  border-radius: 8px;
+  color: #a8f0df;
+  padding: 10px 14px;
+  font-size: .85rem;
+}
+.escrow-dispute-policy-alert {
+  background: rgba(255,193,7,0.08);
+  border: 1px solid rgba(255,193,7,0.25);
+  border-radius: 8px;
+  color: #ffe066;
+  padding: 10px 14px;
+}
+.escrow-admin-note-alert {
+  background: rgba(108,99,255,0.1);
+  border: 1px solid rgba(108,99,255,0.3);
+  border-radius: 8px;
+  color: #c5c5e8;
+  padding: 10px 14px;
+  font-size: .85rem;
+}
+.escrow-step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px;
+  background: var(--accent); color: #fff;
+  border-radius: 50%; font-size: .78rem; font-weight: 700;
+  margin-right: 8px; vertical-align: middle;
+}
+.escrow-step-green   { background: #06d6a0; }
+.escrow-step-warning { background: #ffc107; color: #000; }
+.border-success-subtle { border: 1px solid rgba(6,214,160,0.3); }
+.border-warning-subtle { border: 1px solid rgba(255,193,7,0.3); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyEscrowWallet() {
+  const addr = document.getElementById('escrow-wallet-addr');
+  if (addr) {
+    navigator.clipboard.writeText(addr.textContent.trim())
+      .then(() => window.ShadowHub && window.ShadowHub.showToast('Wallet address copied!'))
+      .catch(() => {});
+  }
+}
+// 30-min countdown
+(function(){
+  var total = 30 * 60, rem = total;
+  var disp = document.getElementById('escrow-countdown');
+  var bar  = document.getElementById('escrow-timer-bar');
+  if (!disp) return;
+  function tick(){
+    var m = Math.floor(rem/60), s = rem%60;
+    disp.textContent = m + ':' + (s<10?'0':'') + s;
+    if (bar) bar.style.width = ((rem/total)*100)+'%';
+    if (rem <= 0){ clearInterval(iv); disp.textContent='EXPIRED'; if(bar){bar.style.width='0%';bar.className='progress-bar bg-danger';} return; }
+    rem--;
+  }
+  tick();
+  var iv = setInterval(tick, 1000);
+})();
+</script>
+{% endblock %}

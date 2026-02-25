@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% block title %}Shop - ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-3 mb-4">
+
+      {# ── Filter form ── #}
+      <div class="card dark-card p-3 mb-3">
+        <h6 class="text-accent mb-3"><i class="fas fa-filter me-2"></i>Filter Products</h6>
+        <form method="get" action="{{ url_for('shop') }}">
+
+          <div class="mb-3">
+            <label class="form-label text-muted small">Search</label>
+            <input type="text" name="search" class="form-control dark-input" placeholder="Search products..." value="{{ search }}">
+          </div>
+
+          {# ── Category grouped select ── #}
+          <div class="mb-3">
+            <label class="form-label text-muted small">Category</label>
+            <select name="category" class="form-select dark-input">
+              <option value="">All Categories</option>
+              {% for parent in categories %}
+                {% if parent.children %}
+                  <optgroup label="📁 {{ parent.name }}">
+                    <option value="{{ parent.slug }}"
+                      {% if selected_category == parent.slug %}selected{% endif %}>
+                      {{ parent.name }} – All
+                    </option>
+                    {% for child in parent.children | sort(attribute='name') %}
+                    <option value="{{ child.slug }}"
+                      {% if selected_category == child.slug %}selected{% endif %}>
+                      &nbsp;&nbsp;↳ {{ child.name }}
+                    </option>
+                    {% endfor %}
+                  </optgroup>
+                {% else %}
+                  <option value="{{ parent.slug }}"
+                    {% if selected_category == parent.slug %}selected{% endif %}>
+                    {{ parent.name }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-muted small">Min Price ({{ supported_currencies[current_currency]['symbol'] }})</label>
+            <input type="number" name="min_price" class="form-control dark-input" value="{{ min_price }}" min="0" step="0.01">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Max Price ({{ supported_currencies[current_currency]['symbol'] }})</label>
+            <input type="number" name="max_price" class="form-control dark-input" value="{{ max_price if max_price < 10000 else '' }}" min="0" step="0.01" placeholder="No limit">
+          </div>
+          <button type="submit" class="btn btn-accent w-100"><i class="fas fa-search me-1"></i>Apply Filters</button>
+          <a href="{{ url_for('shop') }}" class="btn btn-outline-secondary w-100 mt-2">Clear Filters</a>
+        </form>
+      </div>
+
+      {# ── Category tree links ── #}
+      <div class="card dark-card p-3">
+        <h6 class="text-accent mb-3"><i class="fas fa-tags me-2"></i>Browse by Category</h6>
+        <ul class="list-unstyled mb-0 shop-cat-tree">
+
+          <li class="mb-1">
+            <a href="{{ url_for('shop') }}"
+               class="shop-cat-link {% if not selected_category %}active{% endif %}">
+              <i class="fas fa-store me-2 small"></i>All Products
+            </a>
+          </li>
+
+          {% for parent in categories %}
+          <li class="mb-1">
+            {% if parent.children %}
+            {# Collapsible parent #}
+            <div class="shop-cat-parent">
+              <a href="{{ url_for('shop', category=parent.slug) }}"
+                 class="shop-cat-link {% if selected_category == parent.slug %}active{% endif %}">
+                <i class="fas fa-folder{% if selected_category == parent.slug %}-open{% endif %} me-2 small text-accent"></i>
+                {{ parent.name }}
+              </a>
+              <button class="shop-cat-toggle btn btn-link p-0 ms-1"
+                      data-target="sub-{{ parent.slug }}"
+                      title="Expand/collapse">
+                <i class="fas fa-chevron-{% if selected_category in [parent.slug] + parent.children|map(attribute='slug')|list %}down{% else %}right{% endif %} small text-muted"></i>
+              </button>
+            </div>
+            <ul class="list-unstyled ms-3 shop-cat-children {% if selected_category not in ([parent.slug] + parent.children|map(attribute='slug')|list) %}d-none{% endif %}"
+                id="sub-{{ parent.slug }}">
+              {% for child in parent.children | sort(attribute='name') %}
+              <li class="mb-1">
+                <a href="{{ url_for('shop', category=child.slug) }}"
+                   class="shop-cat-link shop-cat-child {% if selected_category == child.slug %}active{% endif %}">
+                  <span class="text-accent me-1">↳</span>{{ child.name }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <a href="{{ url_for('shop', category=parent.slug) }}"
+               class="shop-cat-link {% if selected_category == parent.slug %}active{% endif %}">
+              <i class="fas fa-tag me-2 small text-accent"></i>{{ parent.name }}
+            </a>
+            {% endif %}
+          </li>
+          {% endfor %}
+
+        </ul>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-light mb-0">
+          {% if selected_category %}
+            {# Resolve display name from tree #}
+            {% set ns = namespace(found='') %}
+            {% for parent in categories %}
+              {% if parent.slug == selected_category %}{% set ns.found = parent.name %}{% endif %}
+              {% for child in parent.children %}
+                {% if child.slug == selected_category %}{% set ns.found = parent.name + ' › ' + child.name %}{% endif %}
+              {% endfor %}
+            {% endfor %}
+            {{ ns.found or selected_category }}
+          {% elif search %}
+            Search: "{{ search }}"
+          {% else %}
+            All Products
+          {% endif %}
+        </h4>
+        <span class="text-muted small">{{ products.total }} products found</span>
+      </div>
+
+      {% if products.items %}
+      <div class="row g-4">
+        {% for product in products.items %}
+        <div class="col-lg-4 col-md-6">
+          <div class="product-card h-100">
+            <div class="product-img-wrapper">
+              <img src="{{ product.image_url or 'https://via.placeholder.com/300x200/1a1a2e/6c63ff?text=Product' }}" alt="{{ product.name }}" class="product-img">
+              <div class="product-overlay">
+                <a href="{{ url_for('product_detail', slug=product.slug) }}" class="btn btn-accent btn-sm">View Details</a>
+              </div>
+              {% if product.is_featured %}
+              <span class="badge bg-accent position-absolute top-0 start-0 m-2">Featured</span>
+              {% endif %}
+            </div>
+            <div class="product-info p-3 d-flex flex-column">
+              <div class="product-category text-muted small mb-1">{{ product.category.name if product.category else 'General' }}</div>
+              <h6 class="product-name flex-grow-1">{{ product.name }}</h6>
+              <p class="text-muted small">{{ product.description[:80] if product.description else '' }}...</p>
+              <div class="product-price-row d-flex justify-content-between align-items-center mt-2">
+                <span class="product-price">{{ format_price(product.price) }}</span>
+                <div>
+                  <a href="{{ url_for('product_detail', slug=product.slug) }}" class="btn btn-outline-accent btn-sm me-1"><i class="fas fa-eye"></i></a>
+                  <form action="{{ url_for('cart_add') }}" method="post" class="d-inline">
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-accent btn-sm"><i class="fas fa-cart-plus"></i></button>
+                  </form>
+                </div>
+              </div>
+              {% if product.stock <= 10 and product.stock > 0 %}
+              <small class="text-warning mt-1"><i class="fas fa-exclamation-triangle me-1"></i>Only {{ product.stock }} left!</small>
+              {% elif product.stock == 0 %}
+              <small class="text-danger mt-1"><i class="fas fa-times-circle me-1"></i>Out of stock</small>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if products.pages > 1 %}
+      <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+          {% if products.has_prev %}
+          <li class="page-item">
+            <a class="page-link dark-page-link" href="{{ url_for('shop', page=products.prev_num, category=selected_category, search=search, min_price=min_price, max_price=max_price) }}">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          </li>
+          {% endif %}
+          {% for page_num in products.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            <li class="page-item {% if page_num == products.page %}active{% endif %}">
+              <a class="page-link dark-page-link" href="{{ url_for('shop', page=page_num, category=selected_category, search=search, min_price=min_price, max_price=max_price) }}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link dark-page-link">...</span></li>
+            {% endif %}
+          {% endfor %}
+          {% if products.has_next %}
+          <li class="page-item">
+            <a class="page-link dark-page-link" href="{{ url_for('shop', page=products.next_num, category=selected_category, search=search, min_price=min_price, max_price=max_price) }}">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+      {% else %}
+      <div class="text-center py-5">
+        <i class="fas fa-search fa-4x text-muted mb-3"></i>
+        <h5 class="text-muted">No products found</h5>
+        <p class="text-muted">Try adjusting your filters or search terms.</p>
+        <a href="{{ url_for('shop') }}" class="btn btn-accent">Browse All Products</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Shop sidebar category tree ── */
+.shop-cat-tree { font-size: 0.88rem; }
+.shop-cat-link {
+  display: block;
+  color: #9a9ab0;
+  text-decoration: none;
+  padding: 3px 6px;
+  border-radius: 5px;
+  transition: color .2s, background .2s;
+}
+.shop-cat-link:hover { color: #fff; background: rgba(108,99,255,0.12); }
+.shop-cat-link.active { color: #6c63ff; font-weight: 600; background: rgba(108,99,255,0.12); }
+.shop-cat-child { font-size: 0.83rem; }
+.shop-cat-parent { display: flex; align-items: center; }
+.shop-cat-parent .shop-cat-link { flex: 1; }
+.shop-cat-toggle {
+  color: #6c6c80;
+  text-decoration: none;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+.shop-cat-toggle:hover { color: #6c63ff; }
+.shop-cat-children { border-left: 2px solid rgba(108,99,255,0.2); padding-left: 6px; margin-top: 3px; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.shop-cat-toggle').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var targetId = this.dataset.target;
+    var list = document.getElementById(targetId);
+    if (!list) return;
+    list.classList.toggle('d-none');
+    var icon = this.querySelector('i');
+    if (icon) {
+      icon.classList.toggle('fa-chevron-right');
+      icon.classList.toggle('fa-chevron-down');
+    }
+  });
+});
+</script>
+{% endblock %}

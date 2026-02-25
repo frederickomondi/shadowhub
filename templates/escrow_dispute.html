@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Open Dispute – {{ order.order_number }} – ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <div class="mb-4">
+        <a href="{{ url_for('escrow_panel', order_number=order.order_number) }}"
+           class="text-muted text-decoration-none small">
+          <i class="fas fa-arrow-left me-2"></i>Back to Escrow Panel
+        </a>
+      </div>
+
+      <div class="text-center mb-4">
+        <div class="dispute-icon mb-3"><i class="fas fa-flag fa-3x text-warning"></i></div>
+        <h2 class="text-light">Open a <span class="text-warning">Dispute</span></h2>
+        <p class="text-muted">Order <strong class="text-accent">{{ order.order_number }}</strong></p>
+      </div>
+
+      {# Policy notice #}
+      <div class="alert dispute-policy-box mb-4">
+        <h6 class="text-warning mb-2"><i class="fas fa-balance-scale me-2"></i>Dispute Policy — Please Read</h6>
+        <ul class="text-muted small mb-0 ps-3">
+          <li class="mb-1">Only dispute if you have a <strong class="text-light">genuine reason</strong> — e.g. goods not received, wrong item, damaged, or significantly not as described.</li>
+          <li class="mb-1"><strong class="text-warning">Changing your mind is not a valid reason</strong> for a dispute.</li>
+          <li class="mb-1">You must provide a clear reason and evidence (image strongly recommended).</li>
+          <li class="mb-1">A moderator will review your case. The admin may request additional proof.</li>
+          <li class="mb-1">Abuse of the dispute system may result in your account being restricted.</li>
+        </ul>
+      </div>
+
+      <div class="card dark-card">
+        <div class="card-body p-4">
+          <h5 class="text-accent mb-4"><i class="fas fa-edit me-2"></i>Dispute Details</h5>
+
+          <form method="post" action="{{ url_for('escrow_dispute', order_number=order.order_number) }}"
+                enctype="multipart/form-data" id="disputeForm">
+
+            {# Reason #}
+            <div class="mb-4">
+              <label for="disputeReason" class="form-label text-muted small">
+                Reason for Dispute <span class="text-danger">*</span>
+              </label>
+              <textarea id="disputeReason" name="reason" class="form-control dark-input" rows="5" required
+                        placeholder="Describe exactly what is wrong with your order. Be specific: What did you order? What did you receive? What is the issue?"></textarea>
+              <small class="text-muted">Minimum 20 characters. Be as detailed as possible.</small>
+            </div>
+
+            {# Image evidence #}
+            <div class="mb-4">
+              <label class="form-label text-muted small">
+                Evidence Image <span class="text-muted">(strongly recommended)</span>
+              </label>
+              <div class="dispute-upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt fa-2x text-accent mb-2"></i>
+                <p class="text-muted mb-1">Click or drag an image here</p>
+                <small class="text-muted">JPG, PNG, GIF, WEBP — max 16 MB</small>
+                <input type="file" name="dispute_image" id="disputeImage"
+                       accept=".jpg,.jpeg,.png,.gif,.webp"
+                       class="dispute-file-input">
+              </div>
+              <div id="imagePreviewWrap" class="mt-2 d-none text-center">
+                <img id="imagePreview" src="" alt="Preview" class="img-fluid rounded" style="max-height:200px;">
+                <div class="mt-1">
+                  <small class="text-muted" id="imageFilename"></small>
+                  <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" id="removeImage">Remove</button>
+                </div>
+              </div>
+            </div>
+
+            {# Order summary recap #}
+            <div class="dispute-order-recap p-3 rounded mb-4">
+              <h6 class="text-muted small mb-2">Your Order Details</h6>
+              <div class="d-flex justify-content-between text-muted small mb-1">
+                <span>Order Number</span><span class="text-accent">{{ order.order_number }}</span>
+              </div>
+              <div class="d-flex justify-content-between text-muted small mb-1">
+                <span>Total</span><span>{{ format_price(order.total) }}</span>
+              </div>
+              <div class="d-flex justify-content-between text-muted small">
+                <span>Payment Method</span><span>{{ order.payment_method }}</span>
+              </div>
+            </div>
+
+            {# Confirmation checkbox #}
+            <div class="form-check mb-4">
+              <input type="checkbox" class="form-check-input" id="policyAgree" required>
+              <label class="form-check-label text-muted small" for="policyAgree">
+                I confirm that I have read the dispute policy and my reason is genuine.
+                I understand that changing my mind is not a valid reason for a dispute.
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 btn-lg fw-bold" id="disputeSubmitBtn">
+              <i class="fas fa-flag me-2"></i>Submit Dispute
+            </button>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dispute-icon { animation: pulse-warning 2s ease-in-out infinite; }
+@keyframes pulse-warning { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+.dispute-policy-box {
+  background: rgba(255,193,7,0.07);
+  border: 1px solid rgba(255,193,7,0.35);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.dispute-upload-area {
+  position: relative;
+  border: 2px dashed rgba(108,99,255,0.35);
+  border-radius: 10px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.dispute-upload-area:hover { border-color: var(--accent); background: rgba(108,99,255,0.05); }
+.dispute-file-input {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.dispute-order-recap {
+  background: rgba(108,99,255,0.07);
+  border: 1px solid rgba(108,99,255,0.18);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  var input   = document.getElementById('disputeImage');
+  var preview = document.getElementById('imagePreview');
+  var wrap    = document.getElementById('imagePreviewWrap');
+  var fname   = document.getElementById('imageFilename');
+  var remove  = document.getElementById('removeImage');
+  var area    = document.getElementById('uploadArea');
+
+  input.addEventListener('change', function(){
+    if (this.files && this.files[0]) {
+      var reader = new FileReader();
+      reader.onload = function(e){ preview.src = e.target.result; wrap.classList.remove('d-none'); };
+      reader.readAsDataURL(this.files[0]);
+      fname.textContent = this.files[0].name;
+    }
+  });
+  remove.addEventListener('click', function(){
+    input.value = '';
+    wrap.classList.add('d-none');
+    preview.src = '';
+  });
+
+  // Reason length guard
+  document.getElementById('disputeForm').addEventListener('submit', function(ev){
+    var reason = document.getElementById('disputeReason').value.trim();
+    if (reason.length < 20){
+      ev.preventDefault();
+      alert('Please provide a more detailed reason (at least 20 characters).');
+    }
+  });
+})();
+</script>
+{% endblock %}

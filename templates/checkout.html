@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block title %}Checkout - ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <h2 class="text-light mb-0"><i class="fas fa-lock me-2 text-accent"></i>Secure Checkout</h2>
+    {% if use_escrow %}
+    <span class="badge checkout-escrow-badge">
+      <i class="fas fa-shield-alt me-1"></i>Escrow Protection Active
+    </span>
+    {% endif %}
+  </div>
+
+  {% if use_escrow %}
+  <div class="alert checkout-escrow-info mb-4">
+    <i class="fas fa-shield-alt me-2 text-accent"></i>
+    <strong class="text-light">Escrow is enabled.</strong>
+    After placing your order you will be taken to the secure escrow payment panel.
+    Your funds will be held safely until you confirm receipt.
+    <a href="{{ url_for('escrow_choice') }}" class="text-muted ms-2 small">Change preference</a>
+  </div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('checkout') }}">
+    <input type="hidden" name="use_escrow" value="{{ 'yes' if use_escrow else 'no' }}">
+    <div class="row g-4">
+      <!-- Customer Info -->
+      <div class="col-lg-7">
+        <div class="card dark-card mb-4">
+          <div class="card-body">
+            <h5 class="text-accent mb-4"><i class="fas fa-user me-2"></i>Contact Information</h5>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label text-muted small">Full Name *</label>
+                <input type="text" name="name" class="form-control dark-input" required placeholder="Your full name" value="{{ current_user.username if current_user.is_authenticated else '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-muted small">Email Address *</label>
+                <input type="email" name="email" class="form-control dark-input" required placeholder="your@email.com" value="{{ current_user.email if current_user.is_authenticated else '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-muted small">Phone (Optional)</label>
+                <input type="tel" name="phone" class="form-control dark-input" placeholder="+1 234 567 8900">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card dark-card mb-4">
+          <div class="card-body">
+            <h5 class="text-accent mb-4"><i class="fas fa-map-marker-alt me-2"></i>Shipping Address</h5>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label text-muted small">Address</label>
+                <input type="text" name="address" class="form-control dark-input" placeholder="Street address">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-muted small">City</label>
+                <input type="text" name="city" class="form-control dark-input" placeholder="City">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-muted small">Country</label>
+                <input type="text" name="country" class="form-control dark-input" placeholder="Country">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-muted small">ZIP Code</label>
+                <input type="text" name="zip_code" class="form-control dark-input" placeholder="ZIP">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card dark-card">
+          <div class="card-body">
+            <h5 class="text-accent mb-4"><i class="fab fa-bitcoin me-2"></i>Payment Method</h5>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="payment-method-option">
+                  <input type="radio" name="payment_method" value="BTC" checked class="d-none payment-radio">
+                  <div class="payment-option-card p-3 text-center">
+                    <i class="fab fa-bitcoin fa-2x text-warning mb-2"></i>
+                    <div class="text-light">Bitcoin (BTC)</div>
+                    <small class="text-muted">Most private</small>
+                  </div>
+                </label>
+              </div>
+              <div class="col-md-6">
+                <label class="payment-method-option">
+                  <input type="radio" name="payment_method" value="XMR" class="d-none payment-radio">
+                  <div class="payment-option-card p-3 text-center">
+                    <i class="fas fa-coins fa-2x text-info mb-2"></i>
+                    <div class="text-light">Monero (XMR)</div>
+                    <small class="text-muted">Untraceable</small>
+                  </div>
+                </label>
+              </div>
+              <div class="col-md-6">
+                <label class="payment-method-option">
+                  <input type="radio" name="payment_method" value="USDT" class="d-none payment-radio">
+                  <div class="payment-option-card p-3 text-center">
+                    <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                    <div class="text-light">USDT (TRC20)</div>
+                    <small class="text-muted">Stable value</small>
+                  </div>
+                </label>
+              </div>
+              <div class="col-md-6">
+                <label class="payment-method-option">
+                  <input type="radio" name="payment_method" value="TRX" class="d-none payment-radio">
+                  <div class="payment-option-card p-3 text-center">
+                    <i class="fas fa-bolt fa-2x text-primary mb-2"></i>
+                    <div class="text-light">TRON (TRX)</div>
+                    <small class="text-muted">Fast &amp; cheap</small>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="wallet-info mt-4 p-3 dark-card rounded">
+              <h6 class="text-muted small mb-2">Selected wallet address:</h6>
+              {% for method, addr in wallets.items() %}
+              <div class="wallet-address-display d-none" id="wallet-{{ method }}">
+                <code class="text-accent small break-all">{{ addr }}</code>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="col-lg-5">
+        <div class="card dark-card sticky-top" style="top:80px;">
+          <div class="card-body">
+            <h5 class="text-light mb-4">Order Summary</h5>
+            {% for item in cart_items %}
+            <div class="d-flex align-items-center mb-3">
+              <img src="{{ item.product.image_url or 'https://via.placeholder.com/50x50/1a1a2e/6c63ff?text=P' }}" alt="{{ item.product.name }}" width="50" height="50" class="rounded me-3" style="object-fit:cover;">
+              <div class="flex-grow-1">
+                <div class="text-light small">{{ item.product.name }}</div>
+                <div class="text-muted small">Qty: {{ item.quantity }}</div>
+              </div>
+              <span class="text-accent">{{ format_price(item.subtotal) }}</span>
+            </div>
+            {% endfor %}
+            <hr class="border-secondary">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Subtotal</span>
+              <span class="text-light">{{ format_price(total) }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+              <span class="text-muted">Shipping</span>
+              <span class="text-success">Free</span>
+            </div>
+            <hr class="border-secondary">
+            <div class="d-flex justify-content-between mb-4">
+              <span class="text-light fw-bold fs-5">Total</span>
+              <span class="text-accent fw-bold fs-4">{{ format_price(total) }}</span>
+            </div>
+            {% if use_escrow %}
+            <button type="submit" class="btn btn-accent w-100 btn-lg">
+              <i class="fas fa-shield-alt me-2"></i>Place Order &amp; Go to Escrow Panel
+            </button>
+            <div class="text-center mt-3">
+              <small class="text-muted"><i class="fas fa-lock me-1"></i>Funds held securely until you confirm receipt.</small>
+            </div>
+            {% else %}
+            <button type="submit" class="btn btn-accent w-100 btn-lg">
+              <i class="fas fa-lock me-2"></i>Place Order
+            </button>
+            <div class="text-center mt-3">
+              <small class="text-muted">You will receive payment instructions after placing your order.</small>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const wallets = {{ wallets | tojson }};
+function updateWalletDisplay(method) {
+  document.querySelectorAll('.wallet-address-display').forEach(el => el.classList.add('d-none'));
+  const el = document.getElementById('wallet-' + method);
+  if (el) el.classList.remove('d-none');
+}
+document.querySelectorAll('.payment-radio').forEach(radio => {
+  radio.addEventListener('change', function() {
+    document.querySelectorAll('.payment-option-card').forEach(c => c.classList.remove('selected'));
+    this.closest('.payment-method-option').querySelector('.payment-option-card').classList.add('selected');
+    updateWalletDisplay(this.value);
+  });
+});
+document.querySelectorAll('.payment-method-option').forEach(opt => {
+  opt.addEventListener('click', function() {
+    const radio = this.querySelector('.payment-radio');
+    radio.checked = true;
+    radio.dispatchEvent(new Event('change'));
+  });
+});
+// Init
+const defaultRadio = document.querySelector('.payment-radio:checked');
+if (defaultRadio) {
+  defaultRadio.closest('.payment-method-option').querySelector('.payment-option-card').classList.add('selected');
+  updateWalletDisplay(defaultRadio.value);
+}
+</script>
+{% endblock %}

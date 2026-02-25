@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Terms of Service - ShadowHub{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <h1 class="text-light mb-2">Terms of <span class="text-accent">Service</span></h1>
+      <p class="text-muted mb-5">Last updated: January 1, 2024</p>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">1. Acceptance of Terms</h4>
+          <p class="text-muted">By accessing and using ShadowHub Marketplace, you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">2. Use of Services</h4>
+          <p class="text-muted">You agree to use ShadowHub only for lawful purposes. You must not:</p>
+          <ul class="text-muted">
+            <li>Use the service for any illegal activities</li>
+            <li>Attempt to hack or disrupt our systems</li>
+            <li>Create fake orders or fraudulent transactions</li>
+            <li>Misrepresent your identity or affiliation</li>
+            <li>Violate any applicable local, national, or international laws</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">3. Payment Terms</h4>
+          <p class="text-muted">All transactions on ShadowHub are conducted exclusively in cryptocurrency. By placing an order, you agree to:</p>
+          <ul class="text-muted">
+            <li>Send the exact amount specified within the 30-minute payment window</li>
+            <li>Provide a valid transaction hash for payment verification</li>
+            <li>Accept that cryptocurrency transactions are irreversible</li>
+            <li>Accept the exchange rate at the time of order placement</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">4. Refund Policy</h4>
+          <p class="text-muted">Refunds are issued at our discretion in the following cases:</p>
+          <ul class="text-muted">
+            <li>Product not delivered within agreed timeframe</li>
+            <li>Product significantly different from description</li>
+            <li>Duplicate orders due to technical error</li>
+          </ul>
+          <p class="text-muted">Refunds are issued in the same cryptocurrency used for the original payment at the current exchange rate.</p>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">5. Account Responsibility</h4>
+          <p class="text-muted">If you create an account on ShadowHub, you are responsible for:</p>
+          <ul class="text-muted">
+            <li>Maintaining the security of your account credentials</li>
+            <li>All activities that occur under your account</li>
+            <li>Notifying us immediately of any unauthorized access</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">6. Limitation of Liability</h4>
+          <p class="text-muted">ShadowHub shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of our services, including but not limited to loss of profits, data, or goodwill.</p>
+        </div>
+      </div>
+
+      <div class="card dark-card mb-4">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">7. Modifications to Terms</h4>
+          <p class="text-muted">We reserve the right to modify these terms at any time. Changes will be posted on this page with an updated date. Continued use of our services after changes constitutes acceptance of the new terms.</p>
+        </div>
+      </div>
+
+      <div class="card dark-card">
+        <div class="card-body">
+          <h4 class="text-accent mb-3">8. Contact</h4>
+          <p class="text-muted">For questions about these Terms of Service, please contact us through our <a href="{{ url_for('contact') }}" class="text-accent">contact page</a>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'admin/base.html' %}
+{% block title %}{{ 'Edit' if product else 'Add' }} Product - Admin ShadowHub{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="text-light mb-0">
+    <i class="fas fa-{{ 'edit' if product else 'plus' }} me-2 text-accent"></i>
+    {{ 'Edit Product' if product else 'Add New Product' }}
+  </h2>
+  <a href="{{ url_for('admin_products') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+</div>
+
+<div class="card dark-card">
+  <div class="card-body">
+    <form method="post" action="{{ url_for('admin_edit_product', id=product.id) if product else url_for('admin_add_product') }}">
+      <div class="row g-4">
+        <div class="col-md-8">
+          <div class="mb-3">
+            <label class="form-label text-muted small">Product Name *</label>
+            <input type="text" name="name" class="form-control dark-input" required placeholder="Enter product name" value="{{ product.name if product else '' }}" id="product-name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">URL Slug *</label>
+            <input type="text" name="slug" class="form-control dark-input" placeholder="url-friendly-name" value="{{ product.slug if product else '' }}" id="product-slug">
+            <small class="text-muted">Leave blank to auto-generate from name</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Description</label>
+            <textarea name="description" class="form-control dark-input" rows="5" placeholder="Detailed product description...">{{ product.description if product else '' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Image URL</label>
+            <input type="url" name="image_url" class="form-control dark-input" placeholder="https://..." value="{{ product.image_url if product else '' }}" id="image-url-input">
+          </div>
+          {% if product and product.image_url %}
+          <div class="mb-3">
+            <img src="{{ product.image_url }}" alt="Preview" class="img-fluid rounded" style="max-height:150px;" id="image-preview">
+          </div>
+          {% else %}
+          <div class="mb-3">
+            <img src="" alt="Preview" class="img-fluid rounded d-none" style="max-height:150px;" id="image-preview">
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label class="form-label text-muted small">Price (USD) *</label>
+            <div class="input-group">
+              <span class="input-group-text dark-input-group">$</span>
+              <input type="number" name="price" class="form-control dark-input" required step="0.01" min="0" placeholder="0.00" value="{{ '%.2f'|format(product.price) if product else '' }}">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Stock</label>
+            <input type="number" name="stock" class="form-control dark-input" min="0" placeholder="0" value="{{ product.stock if product else 0 }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Category</label>
+            <select name="category_id" class="form-select dark-input" id="category-select">
+              <option value="">— No Category —</option>
+              {% for parent in top_categories %}
+                {% if parent.children %}
+                  {# Parent with subcategories: show as optgroup #}
+                  <optgroup label="📁 {{ parent.name }}">
+                    <option value="{{ parent.id }}"
+                      {% if product and product.category_id == parent.id %}selected{% endif %}>
+                      {{ parent.name }} (general)
+                    </option>
+                    {% for child in parent.children | sort(attribute='name') %}
+                    <option value="{{ child.id }}"
+                      {% if product and product.category_id == child.id %}selected{% endif %}>
+                      &nbsp;&nbsp;&nbsp;↳ {{ child.name }}
+                    </option>
+                    {% endfor %}
+                  </optgroup>
+                {% else %}
+                  {# Standalone parent (no children) #}
+                  <option value="{{ parent.id }}"
+                    {% if product and product.category_id == parent.id %}selected{% endif %}>
+                    {{ parent.name }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+            <small class="text-muted">Select the most specific category that fits</small>
+          </div>
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured" {% if product and product.is_featured %}checked{% endif %}>
+              <label class="form-check-label text-muted" for="is_featured">Featured Product</label>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if not product or product.is_active %}checked{% endif %}>
+              <label class="form-check-label text-muted" for="is_active">Active (visible in shop)</label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-accent w-100 btn-lg">
+            <i class="fas fa-save me-2"></i>{{ 'Update Product' if product else 'Add Product' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-generate slug from name
+const nameInput = document.getElementById('product-name');
+const slugInput = document.getElementById('product-slug');
+nameInput.addEventListener('input', function() {
+  if (!slugInput.value || slugInput.dataset.autoGenerated === 'true') {
+    slugInput.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    slugInput.dataset.autoGenerated = 'true';
+  }
+});
+slugInput.addEventListener('input', function() {
+  this.dataset.autoGenerated = 'false';
+});
+
+// Image preview
+const imageUrlInput = document.getElementById('image-url-input');
+const imagePreview = document.getElementById('image-preview');
+imageUrlInput.addEventListener('input', function() {
+  if (this.value) {
+    imagePreview.src = this.value;
+    imagePreview.classList.remove('d-none');
+    imagePreview.onerror = function() { imagePreview.classList.add('d-none'); };
+    imagePreview.onload = function() { imagePreview.classList.remove('d-none'); };
+  } else {
+    imagePreview.classList.add('d-none');
+  }
+});
+</script>
+{% endblock %}
